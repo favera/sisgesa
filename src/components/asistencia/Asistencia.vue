@@ -94,6 +94,7 @@
                             <td>{{(dato.entrada || "--") + " hs"}}</td>
                             <td>{{(dato.salida || "--") + " hs"}}</td>
                             <td v-show="dato.isConfirmed">{{dato.horasTrabajadas}}</td>
+                            <td v-show="dato.isConfirmed">{{dato.horasExtras}}</td>
                             <td></td>
                             <td>
                                 <i class="edit row icon"></i>
@@ -105,7 +106,7 @@
 
                     <tfoot v-if="pageOne.totalItems > 0">
                         <tr>
-                            <th colspan="6">
+                            <th colspan="8">
                                 <app-pagination :current-page="pageOne.currentPage" :total-items="pageOne.totalItems" :items-per-page="pageOne.itemsPerPage" @page-changed="pageOneChanged">
                                 </app-pagination>
                             </th>
@@ -156,10 +157,39 @@ export default {
     handleSelectedFile(convertedData) {
       this.preDatos = convertedData.body;
       Array.from(this.funcionarios).map(value => {
-        this.orderData(value.acnro, value.id, value.nombre);
+        this.orderData(value.acnro, value.id, value.nombre, value.cargaLaboral);
       });
     },
-    orderData(acnro, empleadoid, nombre) {
+    handleNegative(mins) {
+      var h, m;
+      if (mins >= 24 * 60) {
+        throw new RangeError(
+          "Valid input should be greater than or equal to 0 and less than 1440."
+        );
+      }
+      if (mins < 0) {
+        mins = mins * -1;
+        h = Math.floor(mins / 60);
+        m = mins % 60;
+        return (
+          "-" +
+          moment
+            .utc()
+            .hours(h)
+            .minutes(m)
+            .format("HH:mm")
+        );
+      } else {
+        h = Math.floor(mins / 60);
+        m = mins % 60;
+        return moment
+          .utc()
+          .hours(h)
+          .minutes(m)
+          .format("HH:mm");
+      }
+    },
+    orderData(acnro, empleadoid, nombre, cargaLaboral) {
       var modelo = {
         fecha: "",
         empleadoId: null,
@@ -167,8 +197,10 @@ export default {
         entrada: "",
         salida: "",
         horasTrabajadas: null,
-        isConfirmed: false
+        isConfirmed: false,
+        horasExtras: moment.duration(cargaLaboral, "HH:mm").asMinutes()
       };
+      console.log("Hora Extra Inicial " + modelo.horasExtras);
       //propiedad que habilita o desabilita el boton de confirmar basado en el estado de isConfirmed
       this.applyCss = modelo.isConfirmed;
 
@@ -194,6 +226,10 @@ export default {
               (modelo.horasTrabajadas -
                 moment.duration(modelo.salida, "HH:mm").asMinutes()) *
               -1;
+            console.log("Horas trabajadas total " + modelo.horasTrabajadas);
+            modelo.horasExtras =
+              (modelo.horasExtras - modelo.horasTrabajadas) * -1;
+            console.log("Hora extra final " + modelo.horasExtras);
           }
         }
       }
@@ -213,7 +249,7 @@ export default {
                 horasTrabajadas: moment
                   .utc(marcacion.horasTrabajadas * 1000 * 60)
                   .format("HH:mm"),
-                horasExtras: moment.duration,
+                horasExtras: this.handleNegative(marcacion.horasExtras),
                 isConfirmed: true
               })
               .then(function(response) {
@@ -230,35 +266,18 @@ export default {
       this.obtenerDatos();
       this.applyCss = true;
       console.log("after async");
-
-      // this.datosMarcaciones.forEach(marcacion => {
-      //   axios
-      //     .post("http://localhost:3000/marcaciones", {
-      //       fecha: marcacion.fecha,
-      //       empleadoId: marcacion.empleadoId,
-      //       entrada: marcacion.entrada,
-      //       salida: marcacion.salida,
-      //       isConfirmed: true
-      //     })
-      //     .then(function(response) {
-      //       console.log(response);
-      //     })
-      //     .catch(function(error) {
-      //       console.log(error);
-      //     });
-      // });
-      //this.obtenerDatos();
-      //setTimeout(this.obtenerDatos(), 3000);
-      //se confirmo los registros
-      //this.applyCss = true;
-      //this.calcularBancoHora();
     },
-    senData() {
-      this.confirmData()
-        .then(this.obtenerDatos(), (this.applyCss = true))
-        .catch(e => {
-          console.log(e);
-        });
+    async prepareData() {
+      const getBancoHora = await axios.get("http://localhost:3000/bancoHora");
+      const getMarcaciones = await axios.get(
+        "http://localhost:3000/marcaciones"
+      );
+
+      const [marcaciones, bancoHora] = await Promise.all([
+        getMarcaciones,
+        getBancoHora
+      ]);
+      console.log(marcaciones.data(), bancoHora.data());
     },
     obtenerDatos() {
       axios

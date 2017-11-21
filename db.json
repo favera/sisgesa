@@ -3,72 +3,82 @@
     {
       "id": 1,
       "nombre": "DORIS BARROS",
-      "acnro": "3511808"
+      "acnro": "3511808",
+      "cargaLaboral": "9:30"
     },
     {
       "id": 2,
       "nombre": "IVON ODETTE MANGUAY",
-      "acnro": "3733513"
+      "acnro": "3733513",
+      "cargaLaboral": "9:30"
     },
     {
       "id": 3,
       "nombre": "OSMAR VILLALBA",
-      "acnro": "4044811"
+      "acnro": "4044811",
+      "cargaLaboral": "9:30"
     },
     {
       "id": 4,
       "nombre": "NILSA TRINIDAD",
-      "acnro": "4064182"
+      "acnro": "4064182",
+      "cargaLaboral": "9:30"
     },
     {
       "id": 5,
       "nombre": "CECILIA SANCHEZ",
-      "acnro": "4107231"
+      "acnro": "4107231",
+      "cargaLaboral": "9:30"
     }
   ],
   "marcaciones": [
     {
-      "fecha": "29/07/2017",
+      "fecha": "31/07/2017",
       "empleadoId": 1,
       "entrada": "6:05",
       "salida": "15:41",
       "horasTrabajadas": "09:36",
+      "horasExtras": "00:06",
       "isConfirmed": true,
       "id": 1
     },
     {
-      "fecha": "29/07/2017",
+      "fecha": "31/07/2017",
       "empleadoId": 2,
       "entrada": "6:06",
       "salida": "15:40",
       "horasTrabajadas": "09:34",
+      "horasExtras": "00:04",
       "isConfirmed": true,
       "id": 2
     },
     {
-      "fecha": "29/07/2017",
+      "fecha": "31/07/2017",
       "empleadoId": 3,
       "entrada": "6:53",
       "salida": "15:34",
       "horasTrabajadas": "08:41",
+      "horasExtras": "-00:49",
       "isConfirmed": true,
       "id": 3
     },
     {
-      "fecha": "29/07/2017",
+      "fecha": "31/07/2017",
       "empleadoId": 4,
       "entrada": "10:23",
       "salida": "19:17",
       "horasTrabajadas": "08:54",
+      "horasExtras": "-00:36",
       "isConfirmed": true,
       "id": 4
     },
     {
-      "fecha": "29/07/2017",
+      "fecha": "31/07/2017",
       "empleadoId": 5,
       "entrada": "7:09",
       "salida": "16:45",
       "horasTrabajadas": "09:36",
+      "horasExtras": "00:06",
       "isConfirmed": true,
       "id": 5
     }
