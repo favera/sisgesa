@@ -1,0 +1,159 @@
+{
+  "empleados": [
+    {
+      "id": 1,
+      "nombre": "DORIS BARROS",
+      "acnro": "3511808"
+    },
+    {
+      "id": 2,
+      "nombre": "IVON ODETTE MANGUAY",
+      "acnro": "3733513"
+    },
+    {
+      "id": 3,
+      "nombre": "OSMAR VILLALBA",
+      "acnro": "4044811"
+    },
+    {
+      "id": 4,
+      "nombre": "NILSA TRINIDAD",
+      "acnro": "4064182"
+    },
+    {
+      "id": 5,
+      "nombre": "CECILIA SANCHEZ",
+      "acnro": "4107231"
+    }
+  ],
+  "marcaciones": [
+    {
+      "fecha": "29/07/2017",
+      "empleadoId": 1,
+      "entrada": "6:05",
+      "salida": "15:41",
+      "horasTrabajadas": "09:36",
+      "isConfirmed": true,
+      "id": 1
+    },
+    {
+      "fecha": "29/07/2017",
+      "empleadoId": 2,
+      "entrada": "6:06",
+      "salida": "15:40",
+      "horasTrabajadas": "09:34",
+      "isConfirmed": true,
+      "id": 2
+    },
+    {
+      "fecha": "29/07/2017",
+      "empleadoId": 3,
+      "entrada": "6:53",
+      "salida": "15:34",
+      "horasTrabajadas": "08:41",
+      "isConfirmed": true,
+      "id": 3
+    },
+    {
+      "fecha": "29/07/2017",
+      "empleadoId": 4,
+      "entrada": "10:23",
+      "salida": "19:17",
+      "horasTrabajadas": "08:54",
+      "isConfirmed": true,
+      "id": 4
+    },
+    {
+      "fecha": "29/07/2017",
+      "empleadoId": 5,
+      "entrada": "7:09",
+      "salida": "16:45",
+      "horasTrabajadas": "09:36",
+      "isConfirmed": true,
+      "id": 5
+    }
+  ],
+  "bancoHora": [],
+  "sucursales": [
+    {
+      "nombreSucursal": "MDL Box",
+      "horarioEntrada": "7:00 a.m",
+      "horarioSalida": "16:30",
+      "lineaBaja": "061570252",
+      "id": 1
+    },
+    {
+      "nombreSucursal": "MDL Paris",
+      "horarioEntrada": "7:00 a.m",
+      "horarioSalida": "16:30",
+      "lineaBaja": "061570252",
+      "id": 2
+    },
+    {
+      "nombreSucursal": "MDL Zuni",
+      "horarioEntrada": "7:00 a.m",
+      "horarioSalida": "16:30",
+      "lineaBaja": "061570252",
+      "id": 3
+    },
+    {
+      "nombreSucursal": "MDL Lion",
+      "horarioEntrada": "7:00 a.m",
+      "horarioSalida": "16:30",
+      "lineaBaja": "061570252",
+      "id": 4
+    }
+  ],
+  "feriados": [
+    {
+      "fecha": "08/11/2018",
+      "tipoFeriado": "completo",
+      "horas": null,
+      "sucursalesAfectadas": [
+        "MDL Box",
+        "MDL Paris"
+      ],
+      "id": 1
+    },
+    {
+      "fecha": "29/11/2017",
+      "tipoFeriado": "parcial",
+      "horas": "29/11/2017",
+      "sucursalesAfectadas": [
+        "MDL Paris",
+        "MDL Lion"
+      ],
+      "id": 2
+    },
+    {
+      "fecha": "27/11/2017",
+      "tipoFeriado": "parcial",
+      "horas": "10:41",
+      "sucursalesAfectadas": [
+        "MDL Box",
+        "MDL Lion"
+      ],
+      "id": 3
+    },
+    {
+      "fecha": "27/11/2017",
+      "tipoFeriado": "parcial",
+      "horas": "Invalid date",
+      "sucursalesAfectadas": [
+        "MDL Box",
+        "MDL Lion"
+      ],
+      "id": 4
+    },
+    {
+      "fecha": "30/11/2017",
+      "tipoFeriado": "completo",
+      "horas": null,
+      "sucursalesAfectadas": [
+        "MDL Zuni",
+        "MDL Lion"
+      ],
+      "id": 5
+    }
+  ]
+}
