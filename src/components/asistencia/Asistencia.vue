@@ -213,7 +213,7 @@ export default {
                 horasTrabajadas: moment
                   .utc(marcacion.horasTrabajadas * 1000 * 60)
                   .format("HH:mm"),
-                horasExtras: moment.duration
+                horasExtras: moment.duration,
                 isConfirmed: true
               })
               .then(function(response) {
