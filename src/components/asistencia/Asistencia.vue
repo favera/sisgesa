@@ -93,8 +93,8 @@
                             <td>{{dato.fecha}}</td>
                             <td>{{(dato.entrada || "--") + " hs"}}</td>
                             <td>{{(dato.salida || "--") + " hs"}}</td>
-                            <td v-show="dato.isConfirmed">{{dato.horasTrabajadas}}</td>
-                            <td v-show="dato.isConfirmed">{{dato.horasExtras}}</td>
+                            <td>{{dato.horasTrabajadas}}</td>
+                            <td>{{dato.horasExtras}}</td>
                             <td></td>
                             <td>
                                 <i class="edit row icon"></i>
@@ -155,11 +155,111 @@ export default {
       });
     },
     handleSelectedFile(convertedData) {
+      console.dir("####### Dtos " + JSON.stringify(convertedData));
       this.preDatos = convertedData.body;
-      Array.from(this.funcionarios).map(value => {
-        this.orderData(value.acnro, value.id, value.nombre, value.cargaLaboral);
+      var flagEntrada = true;
+      var flagSalida = true;
+      //console.log("Datos" + this.preDatos);
+      Array.from(this.funcionarios).forEach(value => {
+        this.orderData(
+          value.acnro,
+          value.id,
+          value.nombre,
+          value.cargaLaboral,
+          flagEntrada,
+          flagSalida
+        );
+        //setea a true los flags para el siguiente item de funcionarios, para que pueda volver a validar la entrada y salida
+        flagEntrada = true;
+        flagSalida = true;
       });
     },
+    orderData(
+      acnro,
+      empleadoid,
+      nombre,
+      cargaLaboral,
+      flagEntrada,
+      flagSalida
+    ) {
+      var modelo = {
+        fecha: "",
+        empleadoId: null,
+        nombre: "",
+        entrada: "",
+        salida: "",
+        horasTrabajadas: "",
+        isConfirmed: false,
+        //hora extra inicia con la cantidad de horas en minutos que tiene que cumplir el funcionario por dia
+        // horasExtras = horasTrabajadas - horasAtrabajar
+        horasExtras: moment.duration(cargaLaboral, "HH:mm").asMinutes()
+      };
+      //console.log("Hora Extra Inicial " + modelo.horasExtras);
+      //propiedad que habilita o desabilita el boton de confirmar basado en el estado de isConfirmed
+      this.applyCss = modelo.isConfirmed;
+
+      for (let arr of this.preDatos) {
+        if (acnro === arr["AC-No."]) {
+          modelo.empleadoId = empleadoid;
+          modelo.nombre = nombre;
+          modelo.date = arr.Horario;
+          modelo.fecha = moment(arr.Horario, "DD/MM/YYYY").format("L");
+          console.log("Horario sin formato " + arr.Horario);
+          console.log(
+            "Horario: " + moment(arr.Horario, "DD/MM/YYYY HH:mm a").format("LT")
+          );
+
+          //si la fecha del archivo excel contiene a.m. es una entrada
+          if (arr.Horario.includes("a.m.") && flagEntrada) {
+            modelo.entrada = moment(arr.Horario, "DD/MM/YYYY hh:mm a").format(
+              "HH:mm"
+            );
+            flagEntrada = false;
+
+            console.log("Entrada " + modelo.entrada + " Flag " + flagEntrada);
+          }
+
+          // Por si exista una entrada menos a la que se encontro primero
+          if (
+            moment(arr.Horario, "DD/MM/YYYY hh:mm a").format("HH:mm") <
+            modelo.entrada
+          ) {
+            modelo.entrada = moment(arr.Horario, "DD/MM/YYYY hh:mm a").format(
+              "HH:mm"
+            );
+            console.log(
+              "Entrada Menor " + modelo.entrada + " Flag " + flagEntrada
+            );
+          }
+
+          //si la fecha que viene de la planilla tiene p.m. es una salida
+          if (arr.Horario.includes("p.m.") && flagSalida) {
+            moment.salida = moment(arr.Horario, "DD/MM/YYYY hh:mm a").format(
+              "HH:mm"
+            );
+            flagSalida = false;
+            console.log("Salida " + modelo.salida + " Flag " + flagSalida);
+          }
+
+          //verifica si existe una salida mayor y le asigna el mayor valor
+          if (
+            arr.Horario.includes("p.m.") &&
+            moment(arr.Horario, "DD/MM/YYYY hh:mm a").format("HH:mm") >
+              modelo.salida
+          ) {
+            modelo.salida = moment(arr.Horario, "DD/MM/YYYY hh:mm a").format(
+              "HH:mm"
+            );
+            console.log(
+              "Salida Mayor " + modelo.salida + " Flag " + flagSalida
+            );
+          }
+        }
+      }
+      //inserta en el array datosMarcaciones, para volver a iterar en el siguiente item
+      this.datosMarcaciones.push(modelo);
+    },
+    //maneja los valores negativos resultante de las horas extras
     handleNegative(mins) {
       var h, m;
       if (mins >= 24 * 60) {
@@ -189,53 +289,7 @@ export default {
           .format("HH:mm");
       }
     },
-    orderData(acnro, empleadoid, nombre, cargaLaboral) {
-      var modelo = {
-        fecha: "",
-        empleadoId: null,
-        nombre: "",
-        entrada: "",
-        salida: "",
-        horasTrabajadas: null,
-        isConfirmed: false,
-        horasExtras: moment.duration(cargaLaboral, "HH:mm").asMinutes()
-      };
-      console.log("Hora Extra Inicial " + modelo.horasExtras);
-      //propiedad que habilita o desabilita el boton de confirmar basado en el estado de isConfirmed
-      this.applyCss = modelo.isConfirmed;
-
-      for (let arr of this.preDatos) {
-        if (acnro === arr["AC-No."]) {
-          modelo.empleadoId = empleadoid;
-          modelo.nombre = nombre;
-          modelo.date = arr.Horario;
-          modelo.fecha = moment(arr.Horario, "DD/MM/YYYY").format("L");
-
-          if ("M/Ent" === arr.Estado) {
-            modelo.entrada = moment(arr.Horario, "DD/MM/YY hh:mm a").format(
-              "LT"
-            );
-            modelo.horasTrabajadas = moment
-              .duration(modelo.entrada, "HH:mm")
-              .asMinutes();
-          } else if ("M/Sal" === arr.Estado) {
-            modelo.salida = moment(arr.Horario, "DD/MM/YY hh:mm a").format(
-              "LT"
-            );
-            modelo.horasTrabajadas =
-              (modelo.horasTrabajadas -
-                moment.duration(modelo.salida, "HH:mm").asMinutes()) *
-              -1;
-            console.log("Horas trabajadas total " + modelo.horasTrabajadas);
-            modelo.horasExtras =
-              (modelo.horasExtras - modelo.horasTrabajadas) * -1;
-            console.log("Hora extra final " + modelo.horasExtras);
-          }
-        }
-      }
-
-      this.datosMarcaciones.push(modelo);
-    },
+    //Hace post al array marcaciones y luego llama la lista, por eso es asincronico
     async confirmData() {
       await Promise.all(
         this.datosMarcaciones.map(async marcacion => {
@@ -246,10 +300,17 @@ export default {
                 empleadoId: marcacion.empleadoId,
                 entrada: marcacion.entrada,
                 salida: marcacion.salida,
-                horasTrabajadas: moment
-                  .utc(marcacion.horasTrabajadas * 1000 * 60)
-                  .format("HH:mm"),
-                horasExtras: this.handleNegative(marcacion.horasExtras),
+                //calculo de Horas trabajadas
+                horasTrabajadas: this.handleHorasTrabajadas(
+                  marcacion.entrada,
+                  marcacion.salida
+                ),
+                //calculo de horas Extras
+                horasExtras: this.handleHorasExtras(
+                  marcacion.entrada,
+                  marcacion.salida,
+                  marcacion.horasExtras
+                ),
                 isConfirmed: true
               })
               .then(function(response) {
@@ -263,7 +324,9 @@ export default {
           }
         })
       );
+      //llama la lista
       this.obtenerDatos();
+      //cambia de color en la lista
       this.applyCss = true;
       console.log("after async");
     },
@@ -278,6 +341,31 @@ export default {
         getBancoHora
       ]);
       console.log(marcaciones.data(), bancoHora.data());
+    },
+    handleHorasTrabajadas(entrada, salida) {
+      var result = moment("00:00", "hh:mm").format("00:00");
+      if (entrada !== "" && salida !== "") {
+        result =
+          moment.duration(salida, "HH:mm").asMinutes() -
+          moment.duration(entrada, "HH:mm").asMinutes();
+        console.log("Horas trabajadas " + result);
+        return moment.utc(result * 1000 * 60).format("HH:mm");
+      }
+      console.log("Horas trabajadas " + result);
+      return result;
+    },
+    handleHorasExtras(entrada, salida, horasExtras) {
+      var horasTrabajadas = this.handleHorasTrabajadas(entrada, salida),
+        result;
+      console.log("Horas Extras " + horasExtras);
+      console.log("Horas trabajadas " + horasTrabajadas);
+      if (!horasTrabajadas.localeCompare("00:00")) {
+        return "-" + moment.utc(horasExtras * 1000 * 60).format("HH:mm");
+      } else {
+        result =
+          moment.duration(horasTrabajadas, "HH:mm").asMinutes() - horasExtras;
+        return this.handleNegative(result);
+      }
     },
     obtenerDatos() {
       axios
