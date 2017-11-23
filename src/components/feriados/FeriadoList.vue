@@ -95,7 +95,7 @@ export default {
   },
   mounted() {
     this.obtenerFeriados();
-    axios.get("http://localhost:3000/sucursales").then(response => {
+    axios.get("http://localhost:3000/sucursals").then(response => {
       this.sucursales = response.data;
     });
   }

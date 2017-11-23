@@ -49,22 +49,20 @@
                 </div>
                 <div class="five wide field">
                     <label for="">Moneda</label>
-                    <select name="" id="" class="ui fluid dropdown">
-                        <option value="">Guaranies - Gs.</option>
-                        <option value="">Dolares - Us.</option>
-                        <option value="">Reales - Rs.</option>
+                    <select v-model="empleado.moneda" class="ui fluid dropdown">
+                        <option disbled value="">Seleccionar Moneda..</option>
+                        <option value="Gs">Guaranies - Gs.</option>
+                        <option value="Us">Dolares - Us.</option>
+                        <option value="Rs">Reales - Rs.</option>
                     </select>
                 </div>
 
             </div>
             <div class="ten wide field">
                 <label for="">Sucursal:</label>
-                <select v-model="empleado.sucursal" class="ui fluid dropdown">
+                <select v-model="empleado.sucursalId" class="ui fluid dropdown" >
                     <option disabled value="">Seleccionar Sucursal..</option>
-                    <option value="zuni">MDL-ZUNI</option>
-                    <option value="box">MDL-BOX</option>
-                    <option value="paris">MDL-PARIS</option>
-                    <option value="lion">MDL-LION</option>
+                    <option v-for="sucursal in sucursales" v-bind:value="sucursal.id">{{sucursal.nombre}}</option>
                 </select>
             </div>
             <div class="ui teal button" @click="guardarEmpleado">Guardar</div>
@@ -85,10 +83,9 @@ export default {
         tipoCarga: "calculado",
         cargaLaboral: "",
         salario: "",
-        moneda: "Gs",
-        sucursal: ""
+        moneda: "",
+        sucursalId: ""
       },
-      id: null,
       money: {
         decimal: ",",
         thousands: ".",
@@ -96,13 +93,13 @@ export default {
         suffix: "",
         precision: 0,
         masked: false /* doesn't work with directive */
-      }
+      },
+      sucursales: []
     };
   },
   methods: {
     guardarEmpleado() {
       if (typeof this.$route.params.id !== "undefined") {
-        this.id = this.$route.params.id;
         axios
           .put("http://localhost:3000/empleados/" + this.$route.params.id, {
             nombre: this.empleado.nombre,
@@ -111,10 +108,12 @@ export default {
             cargaLaboral: this.empleado.cargaLaboral,
             salario: this.empleado.salario,
             moneda: this.empleado.moneda,
-            sucursal: this.empleado.sucursal
+            sucursalId: this.empleado.sucursalId
           })
           .then(response => {
-            this.success(), this.cancelar(), console.log(response);
+            this.success();
+            this.cancelar();
+            console.log(response);
           })
           .catch(error => console.log(error));
       } else {
@@ -126,10 +125,12 @@ export default {
             cargaLaboral: this.empleado.cargaLaboral,
             salario: this.empleado.salario,
             moneda: this.empleado.moneda,
-            sucursal: this.empleado.sucursal
+            sucursalId: this.empleado.sucursalId
           })
           .then(response => {
-            this.success(), this.cancelar(), console.log(response);
+            this.success();
+            this.cancelar();
+            console.log(response);
           })
           .catch(error => console.log(error));
       }
@@ -144,13 +145,12 @@ export default {
             this.empleado.cargaLaboral = response.data.cargaLaboral;
             this.empleado.salario = response.data.salario;
             this.empleado.moneda = response.data.moneda;
-            this.empleado.sucursal = response.data.sucursal;
+            this.empleado.sucursalId = response.data.sucursalId;
           });
       }
     },
     returnList() {
       this.$router.push({ name: "listadoEmpleado" });
-      eventBus.$emit("empleadoEdit", this.empleado, this.id);
     },
     cancelar() {
       this.$router.push({ name: "listadoEmpleado" });
@@ -168,6 +168,14 @@ export default {
         message: "No se ha podido guardar el registro"
       });
     }
+  },
+  mounted() {
+    $(this.$el)
+      .find(".ui.fluid.dropdown")
+      .dropdown();
+    axios.get("http://localhost:3000/sucursals").then(response => {
+      this.sucursales = response.data;
+    });
   },
   created() {
     this.obtenerEmpleado();

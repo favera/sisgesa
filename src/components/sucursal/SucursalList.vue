@@ -1,81 +1,78 @@
 <template>
     <div class="ui twelve wide column">
+    
         <div class="ui form">
-            <h4 class="ui dividing header">Listado de empleados</h4>
+            <h4 class="ui dividing header">Listado de Sucursales</h4>
             <div class="two fields">
                 <div class="field">
-
+    
                     <div class="ui icon input">
                         <input type="text" placeholder="Search...">
-                        <i class="inverted teal circular search link icon"></i>
+                        <i class="inverted circular search link icon"></i>
                     </div>
-
+    
                 </div>
-
+    
                 <div class="field">
-
+    
                     <div class="ui basic icon buttons">
-
-                        <button class="ui button" @click="nuevoEmpleado">
+    
+                        <button class="ui button" @click="nuevaSucursal">
                             <i class="plus icon"></i>
                         </button>
-
+    
                         <button class="ui button">
                             <i class="print icon"></i>
                         </button>
                     </div>
-
+    
                 </div>
             </div>
-
+    
         </div>
-
+    
         <div class="field">
-
+    
             <table class="ui celled table">
                 <thead>
                     <tr>
-                        <th>Nombre del empleado
-                            <i class="sort content descending icon"></i>
-                        </th>
-                        <th>Numero Identificador</th>
-                        <th>Tipo Carga Laboral</th>
-                        <th>Carga Laboral</th>
-                        <th>Salario Base</th>
                         <th>Sucursal</th>
+                        <th>Horario Entrada</th>
+                        <th>Horario Salida</th>
+                        <th>Telefono</th>
                         <th>Opciones</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    <tr v-for="empleado in empleados" :key="empleado.id">
-                        <td> {{empleado.nombre}}</td>
-                        <td> {{empleado.acnro}}</td>
-                        <td> {{empleado.tipoCarga}}</td>
-                        <td> {{empleado.cargaLaboral}}</td>
-                        <td> {{empleado.salario}}{{empleado.moneda}}</td>
-                        <td> {{empleado.sucursal.nombre}}</td>
+                    <tr v-for="sucursal in sucursales" :key="sucursal.id">
+                        <td>{{sucursal.nombre }}</td>
+                        <td>{{sucursal.horarioEntrada + " hs"}}</td>
+                        <td>{{sucursal.horarioSalida + " hs"}}</td>
+                        <td>{{sucursal.telefono}}</td>
                         <td>
-                            <router-link class="item" :to="{name: 'editarEmpleado', params: {id: empleado.id}}" >
+                            <router-link :to="{name: 'editarSucursal', params: {id: sucursal.id}}">
                                 <i class="edit row icon"></i>
                             </router-link>
-
-                            <i class="trash icon" @click="confirm(empleado.id)"></i>
+                            
+                            <i class="trash icon" @click="confirm(sucursal.id)"></i>
                         </td>
                     </tr>
-
                 </tbody>
 
                 <tfoot>
                     <tr>
-                        <th colspan="7">
+                        <th colspan="5">
                             <app-pagination :current-page="pageOne.currentPage" :total-items="pageOne.totalItems" :items-per-page="pageOne.itemsPerPage" @page-changed="pageOneChanged">
                             </app-pagination>
                         </th>
                     </tr>
                 </tfoot>
-            </table>
 
+            </table>
+    
         </div>
+    
     </div>
 </template>
 
@@ -86,7 +83,7 @@ import Pagination from ".././shared/Pagination.vue";
 export default {
   data() {
     return {
-      empleados: [],
+      sucursales: [],
       pageOne: {
         currentPage: 1,
         totalItems: 0,
@@ -94,50 +91,39 @@ export default {
       }
     };
   },
-  components: {
-    appPagination: Pagination
-  },
   methods: {
-    nuevoEmpleado() {
-      this.$router.push({ name: "incluirEmpleado" });
+    nuevaSucursal() {
+      this.$router.push({ name: "incluirSucursal" });
     },
     confirm(id) {
       this.$confirm(
-        "This will permanently delete the file. Continue?",
-        "Warning",
+        "El registro sera eliminado permanentemente. Desea Continuar?",
+        "Atencion!",
         {
           confirmButtonText: "OK",
-          cancelButtonText: "Cancel",
+          cancelButtonText: "Cancelar",
           type: "warning"
         }
       )
         .then(() => {
-          this.eliminarEmpleado(id);
+          this.eliminarSucursal(id);
           this.$message({
             type: "success",
-            message: "Delete completed"
+            message: "Registro Eliminado"
           });
         })
         .catch(() => {
           this.$message({
             type: "info",
-            message: "Delete canceled"
+            message: "Proceso Cancelado"
           });
         });
     },
-    eliminarEmpleado(id) {
-      var index = this.empleados.findIndex(i => i.id === id);
-      console.log(index);
+    obtenerListadoSucursales() {
       axios
-        .delete("http://localhost:3000/empleados/" + id)
-        .then(console.log(this.empleados.splice(index, 1)));
-    },
-    obtenerListadoEmpleado() {
-      axios
-        .get("http://localhost:3000/empleados?_expand=sucursal")
+        .get("http://localhost:3000/sucursals")
         .then(response => {
-          console.log(response);
-          this.empleados = response.data.slice(
+          this.sucursales = response.data.slice(
             0,
             this.pageOne.itemsPerPage - 1
           );
@@ -147,29 +133,39 @@ export default {
           console.log(e);
         });
     },
+    eliminarSucursal(id) {
+      var index = this.sucursales.findIndex(i => i.id === id);
+      console.log(index);
+      axios
+        .delete("http://localhost:3000/sucursals/" + id)
+        .then(this.sucursales.splice(index, 1));
+    },
     pageOneChanged(pageNum) {
       this.pageOne.currentPage = pageNum;
       axios
         .get(
-          "http://localhost:3000/empleados?_page=" + this.pageOne.currentPage
+          "http://localhost:3000/sucursals?_page=" + this.pageOne.currentPage
         )
         .then(response => {
-          this.empleados = response.data.slice(0, this.pageOne.itemsPerPage);
+          this.sucursales = response.data.slice(0, this.pageOne.itemsPerPage);
         })
         .catch(e => {
           console.log(e);
         });
     }
   },
-  created() {
-    this.obtenerListadoEmpleado();
+  components: {
+    appPagination: Pagination
   },
-  updated() {},
+  mounted() {
+    this.obtenerListadoSucursales();
+  },
   watch: {
-    $route: "obtenerListadoEmpleado"
+    $route: "obtenerListadoSucursales"
   }
 };
 </script>
+
 <style>
 .ui.form .field > label {
   margin: 0em 0em 1em;

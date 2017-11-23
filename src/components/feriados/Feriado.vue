@@ -5,7 +5,7 @@
 
         <div class="ten wide field">
         <label for="">Seleccionar Fecha del Feriado</label>
-        <el-date-picker v-model="feriado.fecha" format="dd/MM/yyyy" type="date" placeholder="Seleccionar fecha"></el-date-picker>
+        <el-date-picker v-model="feriado.fechaUtc" format="dd/MM/yyyy" type="date" placeholder="Seleccionar fecha"></el-date-picker>
     </div>
 
     <div class="ten wide field">
@@ -29,7 +29,7 @@
             </div>
 
             <div class="eight wide field" v-show="feriado.tipoFeriado ==='parcial'">
-               <el-time-picker  v-model="feriado.horas" format="HH:mm"
+               <el-time-picker  v-model="feriado.horasUtc" format="HH:mm"
                     :picker-options="{
                     format: 'HH:mm'
                     }"
@@ -41,12 +41,13 @@
 
     <div class="ten wide field">
         <label for="">Seleccionar Sucursales afectadas</label>
-        <select name="sucursales" multiple="" class="ui fluid dropdown" v-model="feriado.sucursalesAfectadas">
-            <option v-for="sucursal in sucursales" :key="sucursal.id" v-bind:value="sucursal.nombreSucursal">{{sucursal.nombreSucursal}}</option>
+        <select name="sucursales" multiple="" class="ui fluid dropdown" v-model="feriado.sucursalesAfectadas" >
+            <option disabled value="">Seleccionar Sucursal..</option>
+            <option v-for="sucursal in sucursales" :key="sucursal.id" v-bind:value="sucursal.nombre">{{sucursal.nombre}}</option>
         </select>
     </div>
 
-    <div class="ui teal button" @click="sendData()">Guardar</div>
+    <div class="ui teal button" @click="guardarFeriado()">Guardar</div>
     <div class="ui button" @click="cancelar()">Cancelar</div>
 </div>
 
@@ -61,9 +62,9 @@ export default {
   data() {
     return {
       feriado: {
-        fecha: "",
+        fechaUtc: "",
         tipoFeriado: "completo",
-        horas: "",
+        horasUtc: "",
         sucursalesAfectadas: []
       },
       sucursales: []
@@ -71,13 +72,10 @@ export default {
   },
   methods: {
     obtenerSucursales() {
-      axios.get("http://localhost:3000/sucursales").then(response => {
+      axios.get("http://localhost:3000/sucursals").then(response => {
         this.sucursales = response.data;
         console.log(this.sucursales);
       });
-    },
-    cancelar() {
-      this.$router.push({ name: "listadoFeriado" });
     },
     obtenerFeriado() {
       console.log(this.$route.params.id);
@@ -87,37 +85,61 @@ export default {
           .get("http://localhost:3000/feriados/" + this.$route.params.id)
           .then(response => {
             console.log(response.data);
-            (this.feriado.fecha = response.data.fecha),
+            (this.feriado.fechaUtc = response.data.fechaUtc),
               (this.feriado.tipoFeriado = response.data.tipoFeriado),
-              (this.feriado.horas = response.data.horas),
+              (this.feriado.horasUtc = response.data.horasUtc),
               (this.feriado.sucursalesAfectadas =
                 response.data.sucursalesAfectadas);
           });
       }
     },
-    sendData() {
+    guardarFeriado() {
       var horaResult;
+      var horaResultUtc;
       if (this.feriado.tipoFeriado === "parcial") {
         horaResult = moment
-          .utc(this.feriado.horas)
+          .utc(this.feriado.horasUtc)
           .local()
           .format("HH:mm");
+        horaResultUtc = this.feriado.horasUtc;
       } else {
         horaResult = null;
+        horaResultUtc = null;
       }
       axios
         .post("http://localhost:3000/feriados", {
-          fecha: moment(this.feriado.fecha, "DD/MM/YYYY").format("L"),
+          fecha: moment(this.feriado.fechaUtc, "DD/MM/YYYY").format("L"),
+          fechaUtc: this.feriado.fechaUtc,
           tipoFeriado: this.feriado.tipoFeriado,
           horas: horaResult,
+          horasUtc: horaResultUtc,
           sucursalesAfectadas: this.feriado.sucursalesAfectadas
         })
         .then(response => {
           console.log(response);
+          this.success();
+          this.cancelar();
         })
         .catch(e => {
           console.log(e);
+          this.fail();
         });
+    },
+    cancelar() {
+      this.$router.push({ name: "listadoFeriado" });
+    },
+    success() {
+      this.$notify({
+        title: "Exito!",
+        message: "El registro se ha creado correctamente",
+        type: "success"
+      });
+    },
+    fail() {
+      this.$notify.error({
+        title: "Error!",
+        message: "No se ha podido guardar el registro"
+      });
     }
   },
   mounted() {
