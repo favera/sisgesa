@@ -69,7 +69,7 @@
 
             <div class="field">
 
-                <table class="ui celled table">
+                <table class="ui teal celled table">
                     <thead>
                         <tr>
                             <th>Funcionario</th>
@@ -104,13 +104,11 @@
     </div>
 </template>
 <script>
-export default {
-
-}
+export default {};
 </script>
 
 <style>
 .test {
-    margin-top: 2em;
+  margin-top: 2em;
 }
 </style>

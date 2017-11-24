@@ -6,7 +6,7 @@
         <a href="#" class="item">Help</a>
       </div>
     </div>
-    <div class="ui left vertical menu visible sidebar">
+    <div class="ui left inverted vertical menu visible sidebar">
       <div class="header item">
         <h4>MDL | SISGESA </h4>
         <p>sistema de Gestion Salarial</p>
@@ -43,6 +43,14 @@ export default {
 <style scoped>
 .ui.grid {
   padding: 0 3%;
+}
+
+.ui.inverted.menu {
+  background-color: #364958;
+}
+
+.ui.menu {
+  background-color: #eef0f2;
 }
 </style>
 

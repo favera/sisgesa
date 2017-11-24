@@ -46,7 +46,7 @@
                             <vue-xlsx-table @on-select-file="handleSelectedFile">
 
                                 <span data-tooltip="Subir archivo de asistencia">
-                                    <i class="upload teal icon"></i>
+                                    <i class="upload icon"></i>
                                 </span>
 
                             </vue-xlsx-table>
@@ -74,7 +74,7 @@
 
             <div class="field">
 
-                <table class="ui celled table">
+                <table class="ui teal celled table">
                     <thead>
                         <tr>
                             <th>Funcionario</th>
@@ -497,7 +497,7 @@ export default {
   background-color: transparent;
   border: none;
   padding: 0;
-  color: rgba(0, 0, 0, 0.6) !important;
+  color: rgba(0, 0, 0, 0.87) !important;
 }
 
 .ui.right.floated.menu {

@@ -1,12 +1,12 @@
 <template>
     <div class="ui twelve wide column">
         <div class="ui form">
-            <h4 class="ui dividing header">Listado de empleados</h4>
+            <h4 class="ui dividing header">Listado de Funcionarios</h4>
             <div class="two fields">
                 <div class="field">
 
                     <div class="ui icon input">
-                        <input type="text" placeholder="Search...">
+                        <input type="text" placeholder="Buscar Funcionario...">
                         <i class="inverted teal circular search link icon"></i>
                     </div>
 
@@ -14,16 +14,15 @@
 
                 <div class="field">
 
-                    <div class="ui basic icon buttons">
+                  <div class="ui right floated main menu">
+                    <a class="icon item" @click="nuevoEmpleado">
+                      <i class="plus icon"></i>
+                    </a>
+                    <a class="icon item">
+                      <i class="print icon"></i>
+                    </a>
+                  </div>
 
-                        <button class="ui button" @click="nuevoEmpleado">
-                            <i class="plus icon"></i>
-                        </button>
-
-                        <button class="ui button">
-                            <i class="print icon"></i>
-                        </button>
-                    </div>
 
                 </div>
             </div>
@@ -32,10 +31,10 @@
 
         <div class="field">
 
-            <table class="ui celled table">
+            <table class="ui teal celled table">
                 <thead>
                     <tr>
-                        <th>Nombre del empleado
+                        <th>Nombre del Funcionario
                             <i class="sort content descending icon"></i>
                         </th>
                         <th>Numero Identificador</th>

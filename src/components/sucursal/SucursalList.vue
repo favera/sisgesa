@@ -7,24 +7,22 @@
                 <div class="field">
     
                     <div class="ui icon input">
-                        <input type="text" placeholder="Search...">
-                        <i class="inverted circular search link icon"></i>
+                        <input type="text" placeholder="Buscar Sucursal..">
+                        <i class="inverted teal circular search link icon"></i>
                     </div>
     
                 </div>
     
                 <div class="field">
     
-                    <div class="ui basic icon buttons">
-    
-                        <button class="ui button" @click="nuevaSucursal">
-                            <i class="plus icon"></i>
-                        </button>
-    
-                        <button class="ui button">
-                            <i class="print icon"></i>
-                        </button>
-                    </div>
+                    <div class="ui right floated main menu">
+                    <a class="icon item" @click="nuevaSucursal">
+                      <i class="plus icon"></i>
+                    </a>
+                    <a class="icon item">
+                      <i class="print icon"></i>
+                    </a>
+                  </div>
     
                 </div>
             </div>
@@ -33,7 +31,7 @@
     
         <div class="field">
     
-            <table class="ui celled table">
+            <table class="ui teal celled table">
                 <thead>
                     <tr>
                         <th>Sucursal</th>
