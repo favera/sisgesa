@@ -5,42 +5,26 @@
             <h4 class="ui dividing header">Listado de Salarios</h4>
             <div class="two fields">
                 <div class="field">
-
+                    <label for="salaryQuery">Introducir rango de fechas:</label>
                     <div class="inline fields">
-                        <label for="salaryQuery">Consultar por:</label>
+                        
+                         <div class="field">
+                            <el-date-picker v-model="fechaInicio" type="date" placeholder="Seleccionar fecha" format="dd/MM/yyyy">
+                            </el-date-picker>
+                        </div>
 
                         <div class="field">
-                            <div class="ui radio checkbox">
-                                <input type="radio" name="salaryQuery" tabindex="0" class="hidden" checked="checked">
-                                <label>Rango de Fechas</label>
-                            </div>
+                            <el-date-picker v-model="fechaFin" type="date" placeholder="Seleccionar fecha" format="dd/MM/yyyy" >
+                            </el-date-picker>
                         </div>
+
+                        <div class="field">
+                            <button class="ui teal button">Generar Salario</button>
+                        </div>
+                       
 
                     </div>
-                    <div class="fields">
-                        <div class=" six wide field">
-
-                            <div class="ui action input">
-                                <input type="text" value="01/08/2017">
-                                <button class="ui teal right icon button">
-                                    <i class="calendar icon"></i>
-                                </button>
-                            </div>
-
-                        </div>
-
-                        <div class=" six wide field">
-
-                            <div class="ui action input">
-                                <input type="text" value="31/08/2017">
-                                <button class="ui teal right icon button">
-                                    <i class="calendar icon"></i>
-                                </button>
-                            </div>
-
-                        </div>
-
-                    </div>
+                    
 
                 </div>
 
@@ -50,7 +34,7 @@
 
                         <div class="ui basic icon buttons">
 
-                            <button @click="nuevaAsistencia" class="ui button">
+                            <button class="ui button">
                                 <i class="plus icon"></i>
                             </button>
                             <button class="ui button">
@@ -76,10 +60,8 @@
                             <th>Carga Laboral del Mes</th>
                             <th>Horas Trabajas</th>
                             <th>Horas Extras</th>
-                            <th>Horas Faltantes</th>
                             <th>Salario Base</th>
                             <th>Valor Hora Extra</th>
-                            <th>Ingresos Domingo</th>
                             <th>Descuentos</th>
                             <th>Salario Neto</th>
 
@@ -104,7 +86,98 @@
     </div>
 </template>
 <script>
-export default {};
+import moment from "moment";
+import axios from "axios";
+export default {
+  data() {
+    return {
+      fechaInicio: "",
+      fechaFin: "",
+      feriados: [],
+      marcaciones: [],
+      sucursales: [],
+      feriadoSucursal: [],
+      salario: {
+        nombreFuncionario: null,
+        funcionarioId: null,
+        cargaLaboralMes: null,
+        horasTrabajadas: null,
+        horasExtras: null,
+        salarioBase: null,
+        valorHoraExtra: null,
+        total: null
+      }
+    };
+  },
+  methods: {
+    getDomingos(fecha) {
+      moment(fecha).date(1);
+      var dif = (7 + (0 - moment(fecha).weekday())) % 7 + 1;
+      console.log(
+        "weekday: " +
+          weekday +
+          ", FirstOfMonth: " +
+          moment(fecha).weekday() +
+          ", dif: " +
+          dif
+      );
+      return Math.floor((moment(fecha).daysInMonth() - dif) / 7) + 1;
+    },
+    getDiasMes(fecha) {
+      var domingos = this.getDomingos(fecha);
+      return moment(fecha).daysInMonth() - domingos;
+    },
+    //Hacer un arrayfilter funcionario donde sera un array de los datos de un solo funcionario
+    //del array resultante sumar horas trabajadas, sumar horas extras, calcular descuento u hora extra
+    //calcular horas mes segun idsucursal
+    calcularSalario(fecha) {},
+    getFeriados() {
+      var modelo = {
+        sucursalNombre: null,
+        horas: null,
+        tipo: null
+      };
+
+      var newFeriado = [];
+
+      Array.from(this.feriados).forEach(feriado => {});
+
+      function retornarId(sucursalAfectada) {
+        Array.from(this.sucursales).forEach(sucursal => {
+          if (sucursal.nombre === sucursalAfectada) {
+            return sucursal.id;
+          }
+        });
+      }
+
+      Array.from(this.feriados).forEach(feriado => {
+        var idSucursales = feriado.sucursalesAfectadas.filter(retornarId);
+
+        if (feriado.tipoFeriado === "completo") {
+          for (let i of idSucursales) {
+            //if()
+          }
+        }
+      });
+    }
+  },
+  mounted() {
+    axios.get("http://localhost:3000/feriados").then(response => {
+      console.log(response);
+      this.feriados = response.data;
+    });
+    axios
+      .get("http://localhost:3000/marcaciones?_expand=empleado")
+      .then(response => {
+        console.log(response);
+        this.marcaciones = response.data;
+      });
+    axios.get("http://localhost:3000/sucursals").then(response => {
+      console.log(response);
+      this.sucursales = response.data;
+    });
+  }
+};
 </script>
 
 <style>

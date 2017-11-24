@@ -61,6 +61,7 @@ export default {
         nombre: null,
         horarioEntradaUtc: null,
         horarioSalidaUtc: null,
+        horaLaboral: null,
         telefono: null
       }
     };
@@ -81,6 +82,10 @@ export default {
               .local()
               .format("HH:mm"),
             horarioSalidaUtc: this.sucursal.horarioSalidaUtc,
+            horaLaboral: moment(this.sucursal.horarioSalidaUtc).diff(
+              this.sucursal.horarioEntradaUtc,
+              "minutes"
+            ),
             telefono: this.sucursal.telefono
           })
           .then(response => {
@@ -103,6 +108,10 @@ export default {
               .local()
               .format("HH:mm"),
             horarioSalidaUtc: this.sucursal.horarioSalidaUtc,
+            horaLaboral: moment(this.sucursal.horarioSalidaUtc).diff(
+              this.sucursal.horarioEntradaUtc,
+              "minutes"
+            ),
             telefono: this.sucursal.telefono
           })
           .then(response => {

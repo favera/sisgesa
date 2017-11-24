@@ -150,7 +150,8 @@ export default {
       this.pageOne.currentPage = pageNum;
       axios
         .get(
-          "http://localhost:3000/empleados?_page=" + this.pageOne.currentPage
+          "http://localhost:3000/empleados?_expand=sucursal&_page=" +
+            this.pageOne.currentPage
         )
         .then(response => {
           this.empleados = response.data.slice(0, this.pageOne.itemsPerPage);

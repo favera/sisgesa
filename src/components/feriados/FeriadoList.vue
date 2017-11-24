@@ -4,7 +4,7 @@
         <div class="ui form">
             <h4 class="ui dividing header">Listado de Feriados</h4>
             <div class="two fields">
-                <div class="field">
+                <div class="ten wide field">
     
                     <div class="ui icon input">
                         <input type="text" placeholder="Buscar Feriado...">

@@ -49,7 +49,7 @@
                 </div>
                 <div class="five wide field">
                     <label for="">Moneda</label>
-                    <select v-model="empleado.moneda" class="ui fluid dropdown">
+                    <select v-model="empleado.moneda" class="ui fluid dropdown" >
                         <option disbled value="">Seleccionar Moneda..</option>
                         <option value="Gs">Guaranies - Gs.</option>
                         <option value="Us">Dolares - Us.</option>
@@ -58,11 +58,12 @@
                 </div>
 
             </div>
+           
             <div class="ten wide field">
                 <label for="">Sucursal:</label>
-                <select v-model="empleado.sucursalId" class="ui fluid dropdown" >
+                <select v-model="empleado.sucursalId">
                     <option disabled value="">Seleccionar Sucursal..</option>
-                    <option v-for="sucursal in sucursales" v-bind:value="sucursal.id">{{sucursal.nombre}}</option>
+                    <option v-for="sucursal in sucursales"  v-bind:value="sucursal.id" :key="sucursal.id" :selected="sucursal.id === empleado.sucursalId ? true : false" >{{sucursal.nombre}}</option>
                 </select>
             </div>
             <div class="ui teal button" @click="guardarEmpleado">Guardar</div>
@@ -98,6 +99,11 @@ export default {
     };
   },
   methods: {
+    calcularSalarioMinuto(valor) {
+      var checkValor = valor.split(".").join("");
+      checkValor = parseInt(checkValor, 10);
+      return checkValor / 30 / 8 / 60;
+    },
     guardarEmpleado() {
       if (typeof this.$route.params.id !== "undefined") {
         axios
@@ -107,6 +113,7 @@ export default {
             tipoCarga: this.empleado.tipoCarga,
             cargaLaboral: this.empleado.cargaLaboral,
             salario: this.empleado.salario,
+            salarioMinuto: this.calcularSalarioMinuto(this.empleado.salario),
             moneda: this.empleado.moneda,
             sucursalId: this.empleado.sucursalId
           })
@@ -124,6 +131,7 @@ export default {
             tipoCarga: this.empleado.tipoCarga,
             cargaLaboral: this.empleado.cargaLaboral,
             salario: this.empleado.salario,
+            salarioMinuto: this.calcularSalarioMinuto(this.empleado.salario),
             moneda: this.empleado.moneda,
             sucursalId: this.empleado.sucursalId
           })
@@ -170,9 +178,7 @@ export default {
     }
   },
   mounted() {
-    $(this.$el)
-      .find(".ui.fluid.dropdown")
-      .dropdown();
+    $(this.$refs.sucursalcombo).dropdown({});
     axios.get("http://localhost:3000/sucursals").then(response => {
       this.sucursales = response.data;
     });
