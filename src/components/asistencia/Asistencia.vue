@@ -52,6 +52,7 @@
 <script>
 import axios from "axios";
 import moment from "moment";
+const url = "https://mdl-sisgesa-back.herokuapp.com";
 export default {
   data() {
     return {
@@ -73,7 +74,7 @@ export default {
     guardarMarcacion() {
       if (typeof this.$route.params.id !== "undefined") {
         axios
-          .put("http://localhost:3000/marcaciones/" + this.$route.params.id, {
+          .put(url + "/marcaciones/" + this.$route.params.id, {
             fecha: moment(this.marcacion.fecha, "DD/MM/YYYY").format("L"),
             empleadoId: this.marcacion.empleadoId,
             entrada: moment
@@ -99,7 +100,7 @@ export default {
           .catch(e => console.log(e));
       } else {
         axios
-          .post("http://localhost:3000/marcaciones", {
+          .post(url + "/marcaciones", {
             fecha: moment(this.marcacion.fecha, "DD/MM/YYYY").format("L"),
             empleadoId: this.marcacion.empleadoId,
             entrada: moment
@@ -186,7 +187,7 @@ export default {
       console.log(offset);
       if (typeof this.$route.params.id != "undefined") {
         axios
-          .get("http://localhost:3000/marcaciones/" + this.$route.params.id)
+          .get(url + "/marcaciones/" + this.$route.params.id)
           .then(response => {
             this.marcacion.fecha = response.data.fecha;
             this.marcacion.empleadoId = response.data.empleadoId;
@@ -219,7 +220,7 @@ export default {
     },
     obtenerFuncionario() {
       axios
-        .get("http://localhost:3000/empleados")
+        .get(url + "/empleados")
         .then(response => {
           console.log(response);
           this.empleados = response.data;

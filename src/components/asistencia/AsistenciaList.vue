@@ -167,6 +167,7 @@
 import moment from "moment";
 import axios from "axios";
 import Pagination from ".././shared/Pagination.vue";
+const url = "https://mdl-sisgesa-back.herokuapp.com";
 export default {
   data() {
     return {
@@ -228,7 +229,7 @@ export default {
       this.confirmData();
       this.datosMarcaciones.length = 0;
       // Array.from(this.ausencias).forEach(ausencia => {
-      //   axios.post("http://localhost:3000/ausencias").then(response => {
+      //   axios.post(url+"/ausencias").then(response => {
       //     empleadoId: this.ausencias.empleadoId;
       //     fecha: this.ausencias.fecha;
       //   });
@@ -238,7 +239,7 @@ export default {
       this.$router.push("/nuevaAsistencia");
     },
     llamarFuncionarios() {
-      axios.get("http://localhost:3000/empleados").then(response => {
+      axios.get(url + "/empleados").then(response => {
         (this.funcionarios = response.data), console.log("entro en axios");
       });
     },
@@ -269,7 +270,7 @@ export default {
     eliminarAsistencia(id) {
       var index = this.marcaciones.findIndex(i => i.id === id);
       axios
-        .delete("http://localhost:3000/marcaciones/" + id)
+        .delete(url + "/marcaciones/" + id)
         .then(console.log(this.marcaciones.splice(index, 1)));
     },
     handleSelectedFile(convertedData) {
@@ -404,7 +405,7 @@ export default {
         this.marcaciones.map(async marcacion => {
           try {
             let response = await axios
-              .post("http://localhost:3000/marcaciones", {
+              .post(url + "/marcaciones", {
                 fecha: marcacion.fecha,
                 empleadoId: marcacion.empleadoId,
                 entrada: marcacion.entrada,
@@ -440,10 +441,8 @@ export default {
       console.log("after async");
     },
     async prepareData() {
-      const getBancoHora = await axios.get("http://localhost:3000/bancoHora");
-      const getMarcaciones = await axios.get(
-        "http://localhost:3000/marcaciones"
-      );
+      const getBancoHora = await axios.get(url + "/bancoHora");
+      const getMarcaciones = await axios.get(url + "/marcaciones");
 
       const [marcaciones, bancoHora] = await Promise.all([
         getMarcaciones,
@@ -479,7 +478,7 @@ export default {
     obtenerDatos() {
       if (this.nombreBusqueda === null) {
         axios
-          .get("http://localhost:3000/marcaciones?_expand=empleado")
+          .get(url + "/marcaciones?_expand=empleado")
           .then(response => {
             console.log(response.data.length);
             this.marcaciones = response.data.slice(
@@ -502,7 +501,7 @@ export default {
           }
         });
         console.log(JSON.stringify(encontrados));
-        var query = "http://localhost:3000/marcaciones?";
+        var query = url + "/marcaciones?";
         var flag = true;
         for (let value of encontrados) {
           if (flag) {
@@ -549,7 +548,8 @@ export default {
       this.pageOne.currentPage = pageNum;
       axios
         .get(
-          "http://localhost:3000/marcaciones?_expand=empleado&_page=" +
+          url +
+            "/marcaciones?_expand=empleado&_page=" +
             this.pageOne.currentPage
         )
         .then(response => {
@@ -572,12 +572,12 @@ export default {
       };
 
       axios
-        .get("http://localhost:3000/marcaciones")
+        .get(url + "/marcaciones")
         .then(response => {
           marcaciones = response.data;
           console.log("####Variable Marcaciones####" + marcaciones);
           axios
-            .get("http://localhost:3000/bancoHora")
+            .get(url + "/bancoHora")
             .then(response => {
               bancoHora = response.data;
               console.log("###Variable banco hora####" + bancoHora);
@@ -628,7 +628,7 @@ export default {
             })
             .then(response => {
               axios
-                .post("http://localhost:3000/bancoHora", {
+                .post(url + "/bancoHora", {
                   resultado: bancoHoraNuevo
                 })
                 .then(response => console.log(response))
@@ -640,9 +640,9 @@ export default {
   },
   created() {
     axios
-      .get("http://localhost:3000/empleados")
+      .get(url + "/empleados")
       .then(response => (this.funcionarios = response.data));
-    axios.get("http://localhost:3000/marcaciones").then(response => {
+    axios.get(url + "/marcaciones").then(response => {
       // this.json_data = response.data;
     });
   },

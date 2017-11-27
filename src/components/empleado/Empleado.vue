@@ -75,6 +75,8 @@
 import { VMoney } from "v-money";
 import axios from "axios";
 import { eventBus } from "./../../main";
+const empleadoslink = "https://mdl-sisgesa-back.herokuapp.com/empleados";
+const sucursaleslink = "https://mdl-sisgesa-back.herokuapp.com/sucursals";
 export default {
   data() {
     return {
@@ -107,7 +109,7 @@ export default {
     guardarEmpleado() {
       if (typeof this.$route.params.id !== "undefined") {
         axios
-          .put("http://localhost:3000/empleados/" + this.$route.params.id, {
+          .put(empleadoslink + "/" + this.$route.params.id, {
             nombre: this.empleado.nombre,
             acnro: this.empleado.acnro,
             tipoCarga: this.empleado.tipoCarga,
@@ -125,7 +127,7 @@ export default {
           .catch(error => console.log(error));
       } else {
         axios
-          .post("http://localhost:3000/empleados", {
+          .post(empleadoslink, {
             nombre: this.empleado.nombre,
             acnro: this.empleado.acnro,
             tipoCarga: this.empleado.tipoCarga,
@@ -146,7 +148,7 @@ export default {
     obtenerEmpleado() {
       if (typeof this.$route.params.id != "undefined") {
         axios
-          .get("http://localhost:3000/empleados/" + this.$route.params.id)
+          .get(empleadoslink + "/" + this.$route.params.id)
           .then(response => {
             this.empleado.nombre = response.data.nombre;
             this.empleado.acnro = response.data.acnro;
@@ -179,7 +181,7 @@ export default {
   },
   mounted() {
     $(this.$refs.sucursalcombo).dropdown({});
-    axios.get("http://localhost:3000/sucursals").then(response => {
+    axios.get(sucursaleslink).then(response => {
       this.sucursales = response.data;
     });
   },

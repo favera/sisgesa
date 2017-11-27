@@ -53,7 +53,7 @@
 <script>
 import axios from "axios";
 import moment from "moment";
-
+const url = "https://mdl-sisgesa-back.herokuapp.com";
 export default {
   data() {
     return {
@@ -70,7 +70,7 @@ export default {
     guardarSucursal() {
       if (typeof this.$route.params.id !== "undefined") {
         axios
-          .put("http://localhost:3000/sucursals/" + this.$route.params.id, {
+          .put(url + "/sucursals/" + this.$route.params.id, {
             nombre: this.sucursal.nombre,
             horarioEntrada: moment
               .utc(this.sucursal.horarioEntradaUtc)
@@ -96,7 +96,7 @@ export default {
           .catch(e => console.log(e));
       } else {
         axios
-          .post("http://localhost:3000/sucursals", {
+          .post(url + "/sucursals", {
             nombre: this.sucursal.nombre,
             horarioEntrada: moment
               .utc(this.sucursal.horarioEntradaUtc)
@@ -125,7 +125,7 @@ export default {
     obtenerSucursal() {
       if (typeof this.$route.params.id !== "undefined") {
         axios
-          .get("http://localhost:3000/sucursals/" + this.$route.params.id)
+          .get(url + "/sucursals/" + this.$route.params.id)
           .then(response => {
             this.sucursal.nombre = response.data.nombre;
             this.sucursal.horarioEntradaUtc = response.data.horarioEntradaUtc;

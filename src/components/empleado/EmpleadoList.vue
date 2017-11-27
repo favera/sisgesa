@@ -81,7 +81,7 @@
 <script>
 import axios from "axios";
 import Pagination from ".././shared/Pagination.vue";
-
+const url = "https://mdl-sisgesa-back.herokuapp.com";
 export default {
   data() {
     return {
@@ -128,12 +128,12 @@ export default {
       var index = this.empleados.findIndex(i => i.id === id);
       console.log(index);
       axios
-        .delete("http://localhost:3000/empleados/" + id)
+        .delete(url + "/empleados/" + id)
         .then(console.log(this.empleados.splice(index, 1)));
     },
     obtenerListadoEmpleado() {
       axios
-        .get("http://localhost:3000/empleados?_expand=sucursal")
+        .get(url + "/empleados?_expand=sucursal")
         .then(response => {
           console.log(response);
           this.empleados = response.data.slice(
@@ -150,8 +150,7 @@ export default {
       this.pageOne.currentPage = pageNum;
       axios
         .get(
-          "http://localhost:3000/empleados?_expand=sucursal&_page=" +
-            this.pageOne.currentPage
+          url + "/empleados?_expand=sucursal&_page=" + this.pageOne.currentPage
         )
         .then(response => {
           this.empleados = response.data.slice(0, this.pageOne.itemsPerPage);

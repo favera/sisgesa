@@ -58,6 +58,7 @@
 <script>
 import moment from "moment";
 import axios from "axios";
+const url = "https://mdl-sisgesa-back.herokuapp.com";
 export default {
   data() {
     return {
@@ -72,7 +73,7 @@ export default {
   },
   methods: {
     obtenerSucursales() {
-      axios.get("http://localhost:3000/sucursals").then(response => {
+      axios.get(url + "/sucursals").then(response => {
         this.sucursales = response.data;
         console.log(this.sucursales);
       });
@@ -81,16 +82,14 @@ export default {
       console.log(this.$route.params.id);
 
       if (typeof this.$route.params.id != "undefined") {
-        axios
-          .get("http://localhost:3000/feriados/" + this.$route.params.id)
-          .then(response => {
-            console.log(response.data);
-            (this.feriado.fechaUtc = response.data.fechaUtc),
-              (this.feriado.tipoFeriado = response.data.tipoFeriado),
-              (this.feriado.horasUtc = response.data.horasUtc),
-              (this.feriado.sucursalesAfectadas =
-                response.data.sucursalesAfectadas);
-          });
+        axios.get(url + "/feriados/" + this.$route.params.id).then(response => {
+          console.log(response.data);
+          (this.feriado.fechaUtc = response.data.fechaUtc),
+            (this.feriado.tipoFeriado = response.data.tipoFeriado),
+            (this.feriado.horasUtc = response.data.horasUtc),
+            (this.feriado.sucursalesAfectadas =
+              response.data.sucursalesAfectadas);
+        });
       }
     },
     guardarFeriado() {
@@ -107,7 +106,7 @@ export default {
         horaResultUtc = null;
       }
       axios
-        .post("http://localhost:3000/feriados", {
+        .post(url + "/feriados", {
           fecha: moment(this.feriado.fechaUtc, "DD/MM/YYYY").format("L"),
           fechaUtc: this.feriado.fechaUtc,
           tipoFeriado: this.feriado.tipoFeriado,

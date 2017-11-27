@@ -68,6 +68,7 @@
 
 <script>
 import axios from "axios";
+const url = "https://mdl-sisgesa-back.herokuapp.com";
 export default {
   data() {
     return {
@@ -81,7 +82,7 @@ export default {
     },
     obtenerFeriados() {
       axios
-        .get("http://localhost:3000/feriados")
+        .get(url + "/feriados")
         .then(response => {
           this.feriados = response.data;
           console.log(this.feriados);
@@ -93,7 +94,7 @@ export default {
   },
   mounted() {
     this.obtenerFeriados();
-    axios.get("http://localhost:3000/sucursals").then(response => {
+    axios.get(url + "/sucursals").then(response => {
       this.sucursales = response.data;
     });
   }
