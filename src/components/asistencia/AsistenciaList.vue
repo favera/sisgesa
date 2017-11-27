@@ -194,7 +194,8 @@ export default {
         entrada: "Entrada",
         salida: "Salida",
         horasTrabajadas: "Horas Trabajadas",
-        horasExtras: "Horas Extras"
+        horasExtras: "Horas Extras",
+        horasExtrasMinutos: "Horas Extras en Minutos"
       },
       json_data: [],
       json_meta: [
@@ -523,7 +524,8 @@ export default {
                 entrada: null,
                 salida: null,
                 horasExtras: null,
-                horasTrabajadas: null
+                horasTrabajadas: null,
+                horasExtrasMinutos: null
               };
               console.log("item array" + JSON.stringify(item));
               informe.funcionario = item.empleado.nombre;
@@ -532,6 +534,9 @@ export default {
               informe.salida = item.salida;
               informe.horasTrabajadas = item.horasTrabajadas;
               informe.horasExtras = item.horasExtras;
+              informe.horasExtrasMinutos = moment
+                .duration(item.horasExtrasMinutos, "HH:mm")
+                .asMinutes();
               this.json_data.push(informe);
               console.log(
                 JSON.stringify("JSON DATA" + JSON.stringify(this.json_data))
@@ -652,6 +657,7 @@ export default {
       .find(".ui.dropdown")
       .dropdown();
     this.llamarFuncionarios();
+    this.obtenerDatos();
   }
 };
 </script>

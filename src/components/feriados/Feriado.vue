@@ -84,11 +84,10 @@ export default {
       if (typeof this.$route.params.id != "undefined") {
         axios.get(url + "/feriados/" + this.$route.params.id).then(response => {
           console.log(response.data);
-          (this.feriado.fechaUtc = response.data.fechaUtc),
-            (this.feriado.tipoFeriado = response.data.tipoFeriado),
-            (this.feriado.horasUtc = response.data.horasUtc),
-            (this.feriado.sucursalesAfectadas =
-              response.data.sucursalesAfectadas);
+          this.feriado.fechaUtc = response.data.fechaUtc;
+          this.feriado.tipoFeriado = response.data.tipoFeriado;
+          this.feriado.horasUtc = response.data.horasUtc;
+          this.feriado.sucursalesAfectadas = response.data.sucursalesAfectadas;
         });
       }
     },
