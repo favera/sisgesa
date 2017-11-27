@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import JsonExcel from 'vue-json-excel';
 import VueRouter from 'vue-router'
 import App from './App.vue'
 import { DatePicker, TimePicker, TimeSelect, MessageBox, Message, Notification } from 'element-ui'
@@ -24,6 +25,7 @@ Vue.use(vueXlsxTable, { rABS: false });
 Vue.use(TimePicker);
 Vue.use(TimeSelect);
 Vue.use(DatePicker);
+Vue.component('downloadExcel', JsonExcel);
 
 Vue.prototype.moment = moment;
 moment.locale('es');

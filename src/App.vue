@@ -11,7 +11,7 @@
         <h4>MDL | SISGESA </h4>
         <p>sistema de Gestion Salarial</p>
       </div>
-      <router-link class="item" active-class="active" to="/asistencia">Asistencia</router-link>
+      <router-link class="item" active-class="active" :to="{name: 'listadoAsistencia'}">Asistencia</router-link>
       <router-link class="item" active-class="active" to="/salarios">Generar Salario</router-link>
       <router-link class="item" active-class="active" :to="{name: 'listadoEmpleado'}">Funcionarios</router-link>
       <router-link class="item" active-class="active" :to="{name: 'listadoSucursal'}">Sucursales</router-link>

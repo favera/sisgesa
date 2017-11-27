@@ -163,17 +163,20 @@ export default {
   },
   mounted() {
     axios.get("http://localhost:3000/feriados").then(response => {
-      console.log(response);
+      var feriados = response.data;
+      console.log(feriados);
       this.feriados = response.data;
     });
     axios
       .get("http://localhost:3000/marcaciones?_expand=empleado")
       .then(response => {
-        console.log(response);
+        var marcaciones = response.data;
+        console.log(marcaciones);
         this.marcaciones = response.data;
       });
     axios.get("http://localhost:3000/sucursals").then(response => {
-      console.log(response);
+      var sucursals = response.data;
+      console.log(sucursals);
       this.sucursales = response.data;
     });
   }

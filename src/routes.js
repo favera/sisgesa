@@ -1,5 +1,5 @@
 import Asistencia from './components/asistencia/Asistencia.vue';
-import NuevaAsistencia from './components/asistencia/NuevaAsistencia.vue'
+import AsistenciaList from './components/asistencia/AsistenciaList.vue'
 import Empleado from './components/empleado/Empleado.vue';
 import EmpleadoList from './components/empleado/EmpleadoList.vue';
 import Feriado from './components/feriados/Feriado.vue';
@@ -12,8 +12,9 @@ import Home from './Home.vue'
 
 export const routes = [
     { path: '', name: 'Home', component: Home },
-    { path: '/asistencia', component: Asistencia },
-    { path: '/nuevaAsistencia', component: NuevaAsistencia },
+    { path: '/asistencias', component: AsistenciaList, name: 'listadoAsistencia' },
+    { path: '/incluir-Asistencia', component: Asistencia, name: 'incluirAsistencia' },
+    { path: '/editar-Asistencia/:id', component: Asistencia, name: 'editarAsistencia' },
     { path: '/funcionarios', component: EmpleadoList, name: 'listadoEmpleado' },
     { path: '/incluir-funcionario', component: Empleado, name: 'incluirEmpleado' },
     { path: '/editar-funcionario/:id', component: Empleado, name: 'editarEmpleado' },
