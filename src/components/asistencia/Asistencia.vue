@@ -96,7 +96,11 @@ export default {
             ),
             isConfirmed: true
           })
-          .then(response => console.log(response))
+          .then(response => {
+            console.log(response);
+            this.success();
+            this.cancelar();
+          })
           .catch(e => console.log(e));
       } else {
         axios
