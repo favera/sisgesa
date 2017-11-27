@@ -492,16 +492,9 @@ export default {
             console.log(e);
           });
       } else {
-        var informe = {
-          funcionario: null,
-          fecha: null,
-          entrada: null,
-          salida: null,
-          horasExtras: null,
-          horasTrabajadas: null
-        };
         var nombre = new RegExp(this.nombreBusqueda, "g");
         var encontrados = [];
+        var datosInforme = [];
         this.funcionarios.filter(element => {
           console.log(element.id, element.nombre);
           if (element.nombre.match(nombre)) {
@@ -525,6 +518,15 @@ export default {
           .then(response => {
             this.marcaciones = response.data;
             Array.from(this.marcaciones).forEach(item => {
+              var informe = {
+                funcionario: null,
+                fecha: null,
+                entrada: null,
+                salida: null,
+                horasExtras: null,
+                horasTrabajadas: null
+              };
+              console.log("item array" + JSON.stringify(item));
               informe.funcionario = item.empleado.nombre;
               informe.fecha = item.fecha;
               informe.entrada = item.entrada;
@@ -532,11 +534,15 @@ export default {
               informe.horasTrabajadas = item.horasTrabajadas;
               informe.horasExtras = item.horasExtras;
               this.json_data.push(informe);
+              console.log(
+                JSON.stringify("JSON DATA" + JSON.stringify(this.json_data))
+              );
             });
-
             console.log(response);
           })
           .catch(e => console.log(e));
+
+        console.log(JSON.stringify("Marcaciones pos get" + this.marcaciones));
       }
     },
     pageOneChanged(pageNum) {
