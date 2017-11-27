@@ -535,7 +535,7 @@ export default {
               informe.horasTrabajadas = item.horasTrabajadas;
               informe.horasExtras = item.horasExtras;
               informe.horasExtrasMinutos = moment
-                .duration(item.horasExtrasMinutos, "HH:mm")
+                .duration(item.horasExtras, "HH:mm")
                 .asMinutes();
               this.json_data.push(informe);
               console.log(
