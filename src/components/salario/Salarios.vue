@@ -19,7 +19,7 @@
                         </div>
 
                         <div class="field">
-                            <button class="ui teal button">Generar Salario</button>
+                            <button class="ui teal button" @click="calcularSalario(fechaInicio, fechaFin)">Generar Salario</button>
                         </div>
                        
 
@@ -58,11 +58,10 @@
                         <tr>
                             <th>Funcionario</th>
                             <th>Carga Laboral del Mes</th>
-                            <th>Horas Trabajas</th>
+                            <th>Horas Trabajadas</th>
                             <th>Horas Extras</th>
                             <th>Salario Base</th>
-                            <th>Valor Hora Extra</th>
-                            <th>Descuentos</th>
+                            <th>Hora Extra</th>
                             <th>Salario Neto</th>
 
                         </tr>
@@ -88,7 +87,8 @@
 <script>
 import moment from "moment";
 import axios from "axios";
-const url = "https://mdl-sisgesa-back.herokuapp.com";
+//const url = "https://mdl-sisgesa-back.herokuapp.com";
+const url = "http://localhost:3000";
 export default {
   data() {
     return {
@@ -96,6 +96,7 @@ export default {
       fechaFin: "",
       feriados: [],
       marcaciones: [],
+      empleados: [],
       sucursales: [],
       feriadoSucursal: [],
       salario: {
@@ -131,53 +132,91 @@ export default {
     //Hacer un arrayfilter funcionario donde sera un array de los datos de un solo funcionario
     //del array resultante sumar horas trabajadas, sumar horas extras, calcular descuento u hora extra
     //calcular horas mes segun idsucursal
-    calcularSalario(fecha) {},
-    getFeriados() {
-      var modelo = {
-        sucursalNombre: null,
-        horas: null,
-        tipo: null
-      };
+    calcularSalario(fechaInicio, fechaFin) {
+      fechaInicio = moment(fechaInicio, "DD/MM/YYYY").format("L");
+      fechaFin = moment(fechaFin, "DD/MM/YYYY").format("L");
+      console.log("FECHAS" + fechaInicio, fechaFin);
+      this.getData(fechaInicio, fechaFin);
 
-      var newFeriado = [];
+      // this.empleados.forEach(element => {
+      //   console.log("Empleado Id" + element.id);
+      //   empleadosId.push(element.id);
+      // });
 
-      Array.from(this.feriados).forEach(feriado => {});
+      //console.log("Array resultado Empleado ID" + empleadosId);
 
-      function retornarId(sucursalAfectada) {
-        Array.from(this.sucursales).forEach(sucursal => {
-          if (sucursal.nombre === sucursalAfectada) {
-            return sucursal.id;
-          }
-        });
-      }
+      // Array.from(this.marcaciones).forEach(empleado => {
+      //   var marcacionesEmpleados = this.marcaciones.find(
+      //     index => index.empleadoId === empleado.empleadoId
+      //   );
+      //   console.log("RESULTADO" + JSON.stringify(marcacionesEmpleados));
+      // });
+    },
 
-      Array.from(this.feriados).forEach(feriado => {
-        var idSucursales = feriado.sucursalesAfectadas.filter(retornarId);
+    async getData(fechaInicio, fechaFin) {
+      try {
+        const getMarcaciones = await axios.get(
+          "http://localhost:3000/marcaciones?fecha_gte=" +
+            fechaInicio +
+            "&fecha_lte=" +
+            fechaFin +
+            "&_expand=empleado"
+        );
 
-        if (feriado.tipoFeriado === "completo") {
-          for (let i of idSucursales) {
-            //if()
-          }
+        const getEmpleados = await axios.get(url + "/empleados");
+
+        console.log("getMarcaciones" + getMarcaciones.data);
+
+        const [marcaciones, empleados] = await Promise.all([
+          getMarcaciones,
+          getEmpleados
+        ]);
+
+        for (let item of empleados.data) {
+          console.log("Entro HIHI" + item.id);
+          this.empleados.push(item.id);
         }
-      });
+
+        //this.empleados = empleados.data;
+        this.marcaciones = marcaciones.data;
+
+        console.log("Empleados" + JSON.stringify(this.empleados));
+        console.log("Marcaciones" + JSON.stringify(this.marcaciones));
+
+        var resultado = [];
+        for (let id of this.empleados) {
+          console.log("Entro en el for");
+          var empleado = this.marcaciones.filter(elment => {
+            if (element.empleadoId === id) {
+              console.log("ENTRO en el filter");
+              return element;
+            }
+          });
+
+          resultado.push(empleado);
+        }
+
+        console.log(JSON.stringify("RESULTADO FINAL" + resultado));
+      } catch (error) {}
     }
   },
+
   mounted() {
-    axios.get(url + "/feriados").then(response => {
-      var feriados = response.data;
-      console.log(feriados);
-      this.feriados = response.data;
-    });
-    axios.get(url + "/marcaciones?_expand=empleado").then(response => {
-      var marcaciones = response.data;
-      console.log(marcaciones);
-      this.marcaciones = response.data;
-    });
-    axios.get(url + "/sucursals").then(response => {
-      var sucursals = response.data;
-      console.log(sucursals);
-      this.sucursales = response.data;
-    });
+    // axios.get(url + "/feriados").then(response => {
+    //   var feriados = response.data;
+    //   console.log(feriados);
+    //   this.feriados = response.data;
+    // });
+    // axios.get(url + "/marcaciones?_expand=empleado").then(response => {
+    //   var marcaciones = response.data;
+    //   console.log(marcaciones);
+    //   this.marcaciones = response.data;
+    // });
+    // axios.get(url + "/sucursals").then(response => {
+    //   var sucursals = response.data;
+    //   console.log(sucursals);
+    //   this.sucursales = response.data;
+    // });
   }
 };
 </script>
