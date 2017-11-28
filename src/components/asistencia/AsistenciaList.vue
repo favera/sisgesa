@@ -167,6 +167,7 @@
 import moment from "moment";
 import axios from "axios";
 import Pagination from ".././shared/Pagination.vue";
+const url = "https://mdl-sisgesa-back.herokuapp.com";
 export default {
   data() {
     return {
@@ -193,7 +194,8 @@ export default {
         entrada: "Entrada",
         salida: "Salida",
         horasTrabajadas: "Horas Trabajadas",
-        horasExtras: "Horas Extras"
+        horasExtras: "Horas Extras",
+        horasExtrasMinutos: "Horas Extras en Minutos"
       },
       json_data: [],
       json_meta: [
@@ -228,7 +230,7 @@ export default {
       this.confirmData();
       this.datosMarcaciones.length = 0;
       // Array.from(this.ausencias).forEach(ausencia => {
-      //   axios.post("http://localhost:3000/ausencias").then(response => {
+      //   axios.post(url+"/ausencias").then(response => {
       //     empleadoId: this.ausencias.empleadoId;
       //     fecha: this.ausencias.fecha;
       //   });
@@ -238,7 +240,7 @@ export default {
       this.$router.push("/nuevaAsistencia");
     },
     llamarFuncionarios() {
-      axios.get("http://localhost:3000/empleados").then(response => {
+      axios.get(url + "/empleados").then(response => {
         (this.funcionarios = response.data), console.log("entro en axios");
       });
     },
@@ -269,7 +271,7 @@ export default {
     eliminarAsistencia(id) {
       var index = this.marcaciones.findIndex(i => i.id === id);
       axios
-        .delete("http://localhost:3000/marcaciones/" + id)
+        .delete(url + "/marcaciones/" + id)
         .then(console.log(this.marcaciones.splice(index, 1)));
     },
     handleSelectedFile(convertedData) {
@@ -293,7 +295,6 @@ export default {
         horarios: [],
         isConfirmed: false
       };
-
       var ausencia = {
         empleadoId: null,
         fecha: null
@@ -301,7 +302,6 @@ export default {
       //console.log("Hora Extra Inicial " + modelo.horasExtras);
       //propiedad que habilita o desabilita el boton de confirmar basado en el estado de isConfirmed
       this.applyCss = modelo.isConfirmed;
-
       for (let arr of this.preDatos) {
         if (acnro === arr["AC-No."]) {
           console.log(
@@ -330,7 +330,6 @@ export default {
       }
       if (modelo.empleadoId !== null) {
         console.log("####Marcaciones####" + modelo.horarios);
-
         if (modelo.horarios.length == 1) {
           var fec = modelo.horarios[0];
           console.log(typeof fec);
@@ -363,7 +362,6 @@ export default {
           this.datosMarcaciones.push(modelo);
         }
       }
-
       console.log(
         JSON.stringify("RESULTADO " + JSON.stringify(this.datosMarcaciones))
       );
@@ -404,7 +402,7 @@ export default {
         this.marcaciones.map(async marcacion => {
           try {
             let response = await axios
-              .post("http://localhost:3000/marcaciones", {
+              .post(url + "/marcaciones", {
                 fecha: marcacion.fecha,
                 empleadoId: marcacion.empleadoId,
                 entrada: marcacion.entrada,
@@ -440,11 +438,8 @@ export default {
       console.log("after async");
     },
     async prepareData() {
-      const getBancoHora = await axios.get("http://localhost:3000/bancoHora");
-      const getMarcaciones = await axios.get(
-        "http://localhost:3000/marcaciones"
-      );
-
+      const getBancoHora = await axios.get(url + "/bancoHora");
+      const getMarcaciones = await axios.get(url + "/marcaciones");
       const [marcaciones, bancoHora] = await Promise.all([
         getMarcaciones,
         getBancoHora
@@ -479,7 +474,7 @@ export default {
     obtenerDatos() {
       if (this.nombreBusqueda === null) {
         axios
-          .get("http://localhost:3000/marcaciones?_expand=empleado")
+          .get(url + "/marcaciones?_expand=empleado")
           .then(response => {
             console.log(response.data.length);
             this.marcaciones = response.data.slice(
@@ -492,16 +487,9 @@ export default {
             console.log(e);
           });
       } else {
-        var informe = {
-          funcionario: null,
-          fecha: null,
-          entrada: null,
-          salida: null,
-          horasExtras: null,
-          horasTrabajadas: null
-        };
         var nombre = new RegExp(this.nombreBusqueda, "g");
         var encontrados = [];
+        var datosInforme = [];
         this.funcionarios.filter(element => {
           console.log(element.id, element.nombre);
           if (element.nombre.match(nombre)) {
@@ -509,7 +497,7 @@ export default {
           }
         });
         console.log(JSON.stringify(encontrados));
-        var query = "http://localhost:3000/marcaciones?";
+        var query = url + "/marcaciones?";
         var flag = true;
         for (let value of encontrados) {
           if (flag) {
@@ -525,25 +513,42 @@ export default {
           .then(response => {
             this.marcaciones = response.data;
             Array.from(this.marcaciones).forEach(item => {
+              var informe = {
+                funcionario: null,
+                fecha: null,
+                entrada: null,
+                salida: null,
+                horasExtras: null,
+                horasTrabajadas: null,
+                horasExtrasMinutos: null
+              };
+              console.log("item array" + JSON.stringify(item));
               informe.funcionario = item.empleado.nombre;
               informe.fecha = item.fecha;
               informe.entrada = item.entrada;
               informe.salida = item.salida;
               informe.horasTrabajadas = item.horasTrabajadas;
               informe.horasExtras = item.horasExtras;
+              informe.horasExtrasMinutos = moment
+                .duration(item.horasExtras, "HH:mm")
+                .asMinutes();
               this.json_data.push(informe);
+              console.log(
+                JSON.stringify("JSON DATA" + JSON.stringify(this.json_data))
+              );
             });
-
             console.log(response);
           })
           .catch(e => console.log(e));
+        console.log(JSON.stringify("Marcaciones pos get" + this.marcaciones));
       }
     },
     pageOneChanged(pageNum) {
       this.pageOne.currentPage = pageNum;
       axios
         .get(
-          "http://localhost:3000/marcaciones?_expand=empleado&_page=" +
+          url +
+            "/marcaciones?_expand=empleado&_page=" +
             this.pageOne.currentPage
         )
         .then(response => {
@@ -564,14 +569,13 @@ export default {
         horasCumplidas: null,
         horasCumplir: null
       };
-
       axios
-        .get("http://localhost:3000/marcaciones")
+        .get(url + "/marcaciones")
         .then(response => {
           marcaciones = response.data;
           console.log("####Variable Marcaciones####" + marcaciones);
           axios
-            .get("http://localhost:3000/bancoHora")
+            .get(url + "/bancoHora")
             .then(response => {
               bancoHora = response.data;
               console.log("###Variable banco hora####" + bancoHora);
@@ -622,7 +626,7 @@ export default {
             })
             .then(response => {
               axios
-                .post("http://localhost:3000/bancoHora", {
+                .post(url + "/bancoHora", {
                   resultado: bancoHoraNuevo
                 })
                 .then(response => console.log(response))
@@ -634,9 +638,9 @@ export default {
   },
   created() {
     axios
-      .get("http://localhost:3000/empleados")
+      .get(url + "/empleados")
       .then(response => (this.funcionarios = response.data));
-    axios.get("http://localhost:3000/marcaciones").then(response => {
+    axios.get(url + "/marcaciones").then(response => {
       // this.json_data = response.data;
     });
   },
@@ -646,6 +650,7 @@ export default {
       .find(".ui.dropdown")
       .dropdown();
     this.llamarFuncionarios();
+    this.obtenerDatos();
   }
 };
 </script>
@@ -657,26 +662,21 @@ export default {
   padding: 0;
   color: rgba(0, 0, 0, 0.87) !important;
 }
-
 .ui.right.floated.menu {
   margin-top: 1.7rem;
 }
-
 .not-active {
   pointer-events: none;
   cursor: default;
 }
-
 .el-date-table td.current:not(.disabled),
 .el-date-table td.end-date,
 .el-date-table td.start-date {
   background-color: #00b5ad !important;
 }
-
 .el-date-table td.today {
   color: #00b5ad;
 }
-
 .el-date-table td.today:before {
   content: " ";
   position: absolute;
@@ -687,7 +687,6 @@ export default {
   border-top: 0.5em solid #00b5ad;
   border-left: 0.5em solid transparent;
 }
-
 .el-date-editor.el-input {
   width: 160px;
 }
