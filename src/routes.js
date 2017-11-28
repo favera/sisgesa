@@ -15,9 +15,9 @@ export const routes = [
     { path: '/asistencias', component: AsistenciaList, name: 'listadoAsistencia' },
     { path: '/incluir-Asistencia', component: Asistencia, name: 'incluirAsistencia' },
     { path: '/editar-Asistencia/:id', component: Asistencia, name: 'editarAsistencia' },
-    { path: '/funcionarios', component: EmpleadoList, name: 'listadoEmpleado' },
+    { path: '/funcionarios', component: EmpleadoList, name: 'listadoEmpleado', props: true },
     { path: '/incluir-funcionario', component: Empleado, name: 'incluirEmpleado' },
-    { path: '/editar-funcionario/:id', component: Empleado, name: 'editarEmpleado' },
+    { path: '/editar-funcionario/:id', component: Empleado, name: 'editarEmpleado', props: true },
     // {
     //     path: '/empleados', component: Empleado,
     //     children: [

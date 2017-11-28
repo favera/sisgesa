@@ -84,6 +84,7 @@ import Pagination from ".././shared/Pagination.vue";
 //const url = "https://mdl-sisgesa-back.herokuapp.com";
 const url = "http://localhost:3000";
 export default {
+  props: ["page"],
   data() {
     return {
       empleados: [],

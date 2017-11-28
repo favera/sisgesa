@@ -97,6 +97,7 @@ export default {
       feriados: [],
       marcaciones: [],
       empleados: [],
+      marcacionesEmpleado: [],
       sucursales: [],
       feriadoSucursal: [],
       salario: {
@@ -156,7 +157,8 @@ export default {
     async getData(fechaInicio, fechaFin) {
       try {
         const getMarcaciones = await axios.get(
-          "http://localhost:3000/marcaciones?fecha_gte=" +
+          url +
+            "/marcaciones?fecha_gte=" +
             fechaInicio +
             "&fecha_lte=" +
             fechaFin +
@@ -180,24 +182,71 @@ export default {
         //this.empleados = empleados.data;
         this.marcaciones = marcaciones.data;
 
-        console.log("Empleados" + JSON.stringify(this.empleados));
-        console.log("Marcaciones" + JSON.stringify(this.marcaciones));
-
-        var resultado = [];
-        for (let id of this.empleados) {
-          console.log("Entro en el for");
-          var empleado = this.marcaciones.filter(elment => {
-            if (element.empleadoId === id) {
-              console.log("ENTRO en el filter");
-              return element;
-            }
-          });
-
-          resultado.push(empleado);
-        }
-
-        console.log(JSON.stringify("RESULTADO FINAL" + resultado));
+        //console.log("Empleados" + JSON.stringify(this.empleados));
+        //console.log("Marcaciones" + JSON.stringify(this.marcaciones));
       } catch (error) {}
+
+      var resultado = [];
+      for (let id of this.empleados) {
+        console.log("Entro en el for");
+        var empleado = this.marcaciones.filter(function(element) {
+          if (element.empleadoId === id) {
+            console.log("ENTRO en el filter " + element);
+            return element;
+          }
+        });
+
+        resultado.push(empleado);
+      }
+
+      console.log("ARRAY RESULTADO" + JSON.stringify(resultado));
+
+      if (resultado.length > 0) {
+        for (var i = 0; i < resultado.length; i++) {
+          var value = resultado[i];
+
+          console.log("Value" + JSON.stringify(resultado[i]));
+
+          var marcacionEmpleado = {
+            nombre: null,
+            horasMes: null,
+            horasTrabajadas: null,
+            horasExtras: null,
+            salarioBase: null,
+            valorHoraExtra: null,
+            salarioNeto: null
+          };
+          if (value.length > 0) {
+            for (let element of value) {
+              marcacionEmpleado.horasTrabajadas =
+                marcacionEmpleado.horasTrabajadas +
+                moment.duration(element.horasTrabajadas, "HH:mm").asMinutes();
+              marcacionEmpleado.horasExtras =
+                marcacionEmpleado.horasExtras +
+                moment.duration(element.horasExtras, "HH:mm").asMinutes();
+            }
+
+            marcacionEmpleado.nombre = value[0].empleado.nombre;
+            console.log("Nombre:" + marcacionEmpleado.nombre);
+            marcacionEmpleado.salarioBase = value[0].empleado.salario;
+            marcacionEmpleado.valorHoraExtra =
+              marcacionEmpleado.horasExtras * value[0].empleado.salarioMinuto;
+
+            marcacionEmpleado.salarioNeto =
+              parseInt(marcacionEmpleado.salarioBase.split(".").join("")) +
+              marcacionEmpleado.valorHoraExtra;
+
+            console.log(
+              "RESULTADO POR EMPLEADO" + JSON.stringify(marcacionEmpleado)
+            );
+          }
+        }
+      }
+
+      console.log(
+        JSON.stringify("RESULTADO FINAL" + JSON.stringify(resultado))
+      );
+      this.marcacionesEmpleado.push(resultado);
     }
   },
 
