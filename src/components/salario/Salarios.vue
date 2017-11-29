@@ -71,10 +71,10 @@
                             <td>{{resultado.nombre}}</td>
                             <td>{{"--"}}</td>
                             <td>{{resultado.horasTrabajadas}}</td>
-                            <td>{{resultado.horasExtras}}</td>
-                            <td>{{resultado.salarioBase}}</td>
-                            <td>{{resultado.valorHoraExtra}}</td>
-                            <td>{{resultado.salarioNeto}}</td>
+                            <td>{{resultado.horasExtras}} -- {{resultado.heformat}}</td>
+                            <td>{{resultado.salarioBase}} {{resultado.moneda}}</td>
+                            <td>{{resultado.valorHoraExtra}} {{resultado.moneda}}</td>
+                            <td>{{resultado.salarioNeto}} {{resultado.moneda}}</td>
 
                             <!-- <td>
                                     <i class="edit row icon"></i>
@@ -218,8 +218,11 @@ export default {
             nombre: null,
             horasMes: null,
             horasTrabajadas: null,
+            htformat: null,
             horasExtras: null,
+            heformat: null,
             salarioBase: null,
+            moneda: null,
             valorHoraExtra: null,
             salarioNeto: null
           };
@@ -237,6 +240,7 @@ export default {
             marcacionEmpleado.nombre = value[0].empleado.nombre;
             console.log("Nombre:" + marcacionEmpleado.nombre);
             marcacionEmpleado.salarioBase = value[0].empleado.salario;
+            marcacionEmpleado.moneda = value[0].empleado.moneda;
             marcacionEmpleado.valorHoraExtra =
               marcacionEmpleado.horasExtras * value[0].empleado.salarioMinuto;
 
@@ -248,6 +252,26 @@ export default {
             marcacionEmpleado.valorHoraExtra = Math.floor(
               marcacionEmpleado.valorHoraExtra
             ).toLocaleString();
+
+            var minutos = Math.floor(
+              (moment
+                .duration(marcacionEmpleado.horasExtras, "minutes")
+                .asHours() %
+                1) *
+                60
+            );
+
+            var horas =
+              moment
+                .duration(marcacionEmpleado.horasExtras, "minutes")
+                .asHours() -
+              moment
+                .duration(marcacionEmpleado.horasExtras, "minutes")
+                .asHours() %
+                1;
+
+            marcacionEmpleado.heformat =
+              horas + " Horas" + minutos + " Minutos";
 
             console.log(
               "RESULTADO POR EMPLEADO" + JSON.stringify(marcacionEmpleado)
