@@ -159,7 +159,7 @@ export default {
       }
     },
     returnList() {
-      this.$router.push({ name: "listadoEmpleado", props: { page: 3 } });
+      this.$router.push({ name: "listadoEmpleado" });
     },
     cancelar() {
       this.$router.push({ name: "listadoEmpleado" });

@@ -136,10 +136,8 @@
                             <td>{{marcacion.horasExtras + " hs"}} </td>
                             <td></td>
                             <td>
-                                <router-link class="item" :to="{name: 'editarAsistencia', params: {id: marcacion.id}}" >
-                                <i class="edit row icon"></i>
-                            </router-link>
-                                <i @click="confirm(dato.id)" class="trash icon"></i>
+                                <i @click="guardarPaginacion(marcacion.id)" class="edit row icon"></i>
+                                <i @click="confirm(marcacion.id)" class="trash icon"></i>
                                 
                             </td>
                         </tr>
@@ -214,6 +212,18 @@ export default {
     appPagination: Pagination
   },
   methods: {
+    guardarPaginacion(marcacionId) {
+      var page = {};
+      page.itemsPerPage = this.pageOne.itemsPerPage;
+      page.currentPage = this.pageOne.currentPage;
+      page.totalItems = this.pageOne.totalItems;
+      localStorage.setItem("page", JSON.stringify(page));
+
+      this.$router.push({
+        name: "editarAsistencia",
+        params: { id: marcacionId }
+      });
+    },
     limpiarDatos() {
       this.json_data.length = 0;
       this.nombreBusqueda = null;
@@ -475,19 +485,26 @@ export default {
     },
     obtenerDatos() {
       if (this.nombreBusqueda === null) {
-        axios
-          .get(url + "/marcaciones?_expand=empleado")
-          .then(response => {
-            console.log(response.data.length);
-            this.marcaciones = response.data.slice(
-              0,
-              this.pageOne.itemsPerPage - 1
-            );
-            this.pageOne.totalItems = response.data.length;
-          })
-          .catch(e => {
-            console.log(e);
-          });
+        var page = JSON.parse(localStorage.getItem("page") || null);
+        if (page !== null) {
+          this.pageOne.totalItems = page.totalItems;
+          this.pageOneChanged(page.currentPage);
+          localStorage.removeItem("page");
+        } else {
+          axios
+            .get(url + "/marcaciones?_expand=empleado")
+            .then(response => {
+              console.log(response.data.length);
+              this.marcaciones = response.data.slice(
+                0,
+                this.pageOne.itemsPerPage - 1
+              );
+              this.pageOne.totalItems = response.data.length;
+            })
+            .catch(e => {
+              console.log(e);
+            });
+        }
       } else {
         var nombre = new RegExp(this.nombreBusqueda, "g");
         var encontrados = [];
@@ -639,20 +656,14 @@ export default {
     }
   },
   created() {
-    axios
-      .get(url + "/empleados")
-      .then(response => (this.funcionarios = response.data));
-    axios.get(url + "/marcaciones").then(response => {
-      // this.json_data = response.data;
-    });
+    this.llamarFuncionarios();
+    this.obtenerDatos();
   },
   mounted() {
     this.modal = $(this.$el).find(".ui.longer.modal");
     $(this.$el)
       .find(".ui.dropdown")
       .dropdown();
-    this.llamarFuncionarios();
-    this.obtenerDatos();
   }
 };
 </script>

@@ -2020,7 +2020,7 @@
     {
       "fecha": "03/11/2017",
       "empleadoId": 20,
-      "entrada": "6:53",
+      "entrada": "06:53",
       "salida": "15:39",
       "horasTrabajadas": "08:46",
       "horasExtras": "-00:44",
@@ -4070,10 +4070,10 @@
     {
       "fecha": "08/11/2017",
       "empleadoId": 11,
-      "entrada": "7:00",
+      "entrada": "07:00",
       "salida": "16:30",
-      "horasTrabajadas": "00:00",
-      "horasExtras": "-09:30",
+      "horasTrabajadas": "09:30",
+      "horasExtras": "00:00",
       "isConfirmed": true,
       "id": 336
     },
@@ -6320,7 +6320,7 @@
     {
       "fecha": "11/11/2017",
       "empleadoId": 15,
-      "entrada": "6:56",
+      "entrada": "06:56",
       "salida": "16:34",
       "horasTrabajadas": "09:38",
       "horasExtras": "00:08",
@@ -6730,7 +6730,7 @@
     {
       "fecha": "11/11/2017",
       "empleadoId": 40,
-      "entrada": "6:00",
+      "entrada": "06:00",
       "salida": "16:30",
       "horasTrabajadas": "10:30",
       "horasExtras": "01:00",

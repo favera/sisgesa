@@ -67,7 +67,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
+                        <tr v-for="resultado in marcacionesEmpleado" :key="resultado.nombre">
+                            <td>{{resultado.nombre}}</td>
+                            <td>{{"--"}}</td>
+                            <td>{{resultado.horasTrabajadas}}</td>
+                            <td>{{resultado.horasExtras}}</td>
+                            <td>{{resultado.salarioBase}}</td>
+                            <td>{{resultado.valorHoraExtra}}</td>
+                            <td>{{resultado.salarioNeto}}</td>
 
                             <!-- <td>
                                     <i class="edit row icon"></i>
@@ -225,28 +232,34 @@ export default {
                 marcacionEmpleado.horasExtras +
                 moment.duration(element.horasExtras, "HH:mm").asMinutes();
             }
-
+            //copiar hanlde para minutos para mostrar en el informe,
+            //caclcular total laboral mes
             marcacionEmpleado.nombre = value[0].empleado.nombre;
             console.log("Nombre:" + marcacionEmpleado.nombre);
             marcacionEmpleado.salarioBase = value[0].empleado.salario;
             marcacionEmpleado.valorHoraExtra =
               marcacionEmpleado.horasExtras * value[0].empleado.salarioMinuto;
 
-            marcacionEmpleado.salarioNeto =
+            marcacionEmpleado.salarioNeto = Math.floor(
               parseInt(marcacionEmpleado.salarioBase.split(".").join("")) +
-              marcacionEmpleado.valorHoraExtra;
+                marcacionEmpleado.valorHoraExtra
+            ).toLocaleString();
+
+            marcacionEmpleado.valorHoraExtra = Math.floor(
+              marcacionEmpleado.valorHoraExtra
+            ).toLocaleString();
 
             console.log(
               "RESULTADO POR EMPLEADO" + JSON.stringify(marcacionEmpleado)
             );
+            this.marcacionesEmpleado.push(marcacionEmpleado);
           }
         }
       }
 
       console.log(
-        JSON.stringify("RESULTADO FINAL" + JSON.stringify(resultado))
+        JSON.stringify("RESULTADO FINAL" + JSON.stringify(marcacionEmpleado))
       );
-      this.marcacionesEmpleado.push(resultado);
     }
   },
 

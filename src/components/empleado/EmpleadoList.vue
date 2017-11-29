@@ -54,9 +54,9 @@
                         <td> {{empleado.salario}}{{empleado.moneda}}</td>
                         <td> {{empleado.sucursal.nombre}}</td>
                         <td>
-                            <router-link class="item" :to="{name: 'editarEmpleado', params: {id: empleado.id}}" >
+                            <span class="item" @click="guardarPaginacion(empleado.id)">
                                 <i class="edit row icon"></i>
-                            </router-link>
+                            </span>
 
                             <i class="trash icon" @click="confirm(empleado.id)"></i>
                         </td>
@@ -91,7 +91,7 @@ export default {
       pageOne: {
         currentPage: 1,
         totalItems: 0,
-        itemsPerPage: 11
+        itemsPerPage: 10
       }
     };
   },
@@ -99,6 +99,16 @@ export default {
     appPagination: Pagination
   },
   methods: {
+    guardarPaginacion(empleadoId) {
+      var page = {};
+      page.currentPage = this.pageOne.currentPage;
+      page.totalItems = this.pageOne.totalItems;
+      page.itemsPerPage = this.pageOne.itemsPerPage;
+
+      localStorage.setItem("page", JSON.stringify(page));
+
+      this.$router.push({ name: "editarEmpleado", params: { id: empleadoId } });
+    },
     nuevoEmpleado() {
       this.$router.push({ name: "incluirEmpleado" });
     },
@@ -134,19 +144,43 @@ export default {
         .then(console.log(this.empleados.splice(index, 1)));
     },
     obtenerListadoEmpleado() {
-      axios
-        .get(url + "/empleados?_expand=sucursal")
-        .then(response => {
-          console.log(response);
-          this.empleados = response.data.slice(
-            0,
-            this.pageOne.itemsPerPage - 1
-          );
-          this.pageOne.totalItems = response.data.length;
-        })
-        .catch(e => {
-          console.log(e);
-        });
+      var page = JSON.parse(localStorage.getItem("page") || null);
+      console.log("Pagina" + page);
+
+      if (page !== null) {
+        //this.pageOne.currentPage = page.currentPage;
+        this.pageOne.itemsPerPage = page.itemsPerPage;
+        this.pageOne.totalItems = page.totalItems;
+
+        this.pageOneChanged(page.currentPage);
+
+        // axios
+        //   .get(
+        //     url +
+        //       "/empleados?_expand=sucursal&_page=" +
+        //       this.pageOne.currentPage
+        //   )
+        //   .then(response => {
+        //     this.empleados = response.data.slice(0, this.pageOne.itemsPerPage);
+        //   })
+        //   .catch(e => {
+        //     console.log(e);
+        //   });
+      } else {
+        axios
+          .get(url + "/empleados?_expand=sucursal")
+          .then(response => {
+            console.log(response);
+            this.empleados = response.data.slice(
+              0,
+              this.pageOne.itemsPerPage - 1
+            );
+            this.pageOne.totalItems = response.data.length;
+          })
+          .catch(e => {
+            console.log(e);
+          });
+      }
     },
     pageOneChanged(pageNum) {
       this.pageOne.currentPage = pageNum;
