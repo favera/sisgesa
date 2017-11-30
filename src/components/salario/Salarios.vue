@@ -41,7 +41,16 @@
                                 <i class="upload icon"></i>
                             </button>
                             <button class="ui button">
-                                <i class="print icon"></i>
+                               <download-excel
+	                            :data   = "json_data"
+	                            :fields = "json_fields"
+	                            :meta   = "json_meta"
+	                            name    = "salario.xls">
+
+                            <i class="print icon"></i>
+
+
+                            </download-excel>
                             </button>
                         </div>
 
@@ -70,11 +79,11 @@
                         <tr v-for="resultado in marcacionesEmpleado" :key="resultado.nombre">
                             <td>{{resultado.nombre}}</td>
                             <td>{{resultado.hmformat }}</td>
-                            <td>{{resultado.htformat}}</td>
-                            <td>{{resultado.heformat}}</td>
+                            <td>{{resultado.horasTrabajadas}} {{resultado.htformat}}</td>
+                            <td>{{resultado.horasExtraAlternativa}} {{resultado.heformat}}</td>
                             <td>{{resultado.salarioBase}} {{resultado.moneda}}</td>
-                            <td>{{resultado.valorHoraExtra}} {{resultado.moneda}}</td>
-                            <td>{{resultado.salarioNeto}} {{resultado.moneda}}</td>
+                            <td>{{resultado.valorHoraExtraAlternativa}} {{resultado.moneda}}</td>
+                            <td>{{resultado.salarioNetoAlternativo}} {{resultado.moneda}}</td>
 
                             <!-- <td>
                                     <i class="edit row icon"></i>
@@ -107,16 +116,29 @@ export default {
       marcacionesEmpleado: [],
       sucursales: [],
       feriadoSucursal: [],
-      salario: {
-        nombreFuncionario: null,
-        funcionarioId: null,
-        cargaLaboralMes: null,
-        horasTrabajadas: null,
-        horasExtras: null,
-        salarioBase: null,
-        valorHoraExtra: null,
-        total: null
-      }
+      json_fields: {
+        nombre: "Funcionario",
+        hmformat:
+          "Carga Laboral " + moment(this.fechaInicio, "month").format("MMMM"),
+        horasMes: "Carga laboral en minutos",
+        htformat: "Horas Trabajadas",
+        horasTrabajadas: "Horas Trabajadas en minutos",
+        horasExtraAlternativa: "Horas Extras",
+        heformat: "Horas Extras en minutos",
+        salarioBase: "Salario base",
+        moneda: "Moneda",
+        valorHoraExtraAlternativa: "Valor Hora extra",
+        salarioNetoAlternativo: "Salario Neto"
+      },
+      json_data: [],
+      json_meta: [
+        [
+          {
+            key: "charset",
+            value: "utf-8"
+          }
+        ]
+      ]
     };
   },
   methods: {
@@ -217,10 +239,13 @@ export default {
             htformat: null,
             horasExtras: null,
             heformat: null,
+            horasExtraAlternativa: null,
             salarioBase: null,
             moneda: null,
             valorHoraExtra: null,
-            salarioNeto: null
+            salarioNeto: null,
+            salarioNetoAlternativo: null,
+            valorHoraExtraAlternativa: null
           };
           if (value.length > 0) {
             for (let element of value) {
@@ -238,6 +263,65 @@ export default {
             marcacionEmpleado.salarioBase = value[0].empleado.salario;
             marcacionEmpleado.moneda = value[0].empleado.moneda;
             marcacionEmpleado.horasMes = horasMes * 570;
+            marcacionEmpleado.horasExtraAlternativa =
+              marcacionEmpleado.horasTrabajadas - marcacionEmpleado.horasMes;
+            console.log(
+              "HORA EXTRA ALTERNATIVA" + marcacionEmpleado.horasExtraAlternativa
+            );
+            marcacionEmpleado.valorHoraExtraAlternativa =
+              marcacionEmpleado.horasExtraAlternativa *
+              value[0].empleado.salarioMinuto;
+
+            if (marcacionEmpleado.valorHoraExtraAlternativa < 0) {
+              marcacionEmpleado.valorHoraExtraAlternativa =
+                marcacionEmpleado.valorHoraExtraAlternativa * 2;
+            }
+
+            marcacionEmpleado.salarioNetoAlternativo = Math.floor(
+              parseInt(marcacionEmpleado.salarioBase.split(".").join("")) +
+                marcacionEmpleado.valorHoraExtraAlternativa
+            ).toLocaleString();
+
+            var minutos = Math.floor(
+              (moment
+                .duration(marcacionEmpleado.horasExtraAlternativa, "minutes")
+                .asHours() %
+                1) *
+                60
+            );
+
+            var horas =
+              moment
+                .duration(marcacionEmpleado.horasExtraAlternativa, "minutes")
+                .asHours() -
+              moment
+                .duration(marcacionEmpleado.horasExtraAlternativa, "minutes")
+                .asHours() %
+                1;
+
+            if (minutos > 0 && horas > 0) {
+              marcacionEmpleado.heformat =
+                horas + " Horas " + minutos + " Minutos";
+            } else {
+              if (minutos < 0 && horas < 0) {
+                minutos = minutos * -1;
+                marcacionEmpleado.heformat =
+                  horas + " Horas " + minutos + " Minutos";
+              } else {
+                if (horas !== 0 && minutos === 0) {
+                  marcacionEmpleado.heformat = horas + " Horas";
+                } else {
+                  marcacionEmpleado.heformat = minutos + " Minutos";
+                }
+              }
+            }
+
+            marcacionEmpleado.valorHoraExtraAlternativa = Math.floor(
+              marcacionEmpleado.valorHoraExtraAlternativa
+            ).toLocaleString();
+
+            //##############################
+
             marcacionEmpleado.valorHoraExtra =
               marcacionEmpleado.horasExtras * value[0].empleado.salarioMinuto;
 
@@ -246,11 +330,16 @@ export default {
                 marcacionEmpleado.valorHoraExtra
             ).toLocaleString();
 
+            if (marcacionEmpleado.valorHoraExtra < 0) {
+              marcacionEmpleado.valorHoraExtra =
+                marcacionEmpleado.valorHoraExtra * 2;
+            }
+
             marcacionEmpleado.valorHoraExtra = Math.floor(
               marcacionEmpleado.valorHoraExtra
             ).toLocaleString();
 
-            var minutos = Math.floor(
+            /* var minutos = Math.floor(
               (moment
                 .duration(marcacionEmpleado.horasExtras, "minutes")
                 .asHours() %
@@ -282,9 +371,9 @@ export default {
                   marcacionEmpleado.heformat = minutos + " Minutos";
                 }
               }
-            }
+            }*/
 
-            var minuto = Math.floor(
+            var minuto = Math.ceil(
               (moment
                 .duration(marcacionEmpleado.horasTrabajadas, "minutes")
                 .asHours() %
@@ -327,6 +416,7 @@ export default {
               "RESULTADO POR EMPLEADO" + JSON.stringify(marcacionEmpleado)
             );
             this.marcacionesEmpleado.push(marcacionEmpleado);
+            this.json_data.push(marcacionEmpleado);
           }
         }
       }
