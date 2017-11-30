@@ -1,4 +1,5 @@
 <template>
-    <h1>
-        Home</h1>
+<div class="ui red segment"><h1>
+        Home</h1></div>
+    
 </template>

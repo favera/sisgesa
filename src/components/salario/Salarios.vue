@@ -69,9 +69,9 @@
                     <tbody>
                         <tr v-for="resultado in marcacionesEmpleado" :key="resultado.nombre">
                             <td>{{resultado.nombre}}</td>
-                            <td>{{"--"}}</td>
-                            <td>{{resultado.horasTrabajadas}}</td>
-                            <td>{{resultado.horasExtras}} -- {{resultado.heformat}}</td>
+                            <td>{{resultado.hmformat }}</td>
+                            <td>{{resultado.htformat}}</td>
+                            <td>{{resultado.heformat}}</td>
                             <td>{{resultado.salarioBase}} {{resultado.moneda}}</td>
                             <td>{{resultado.valorHoraExtra}} {{resultado.moneda}}</td>
                             <td>{{resultado.salarioNeto}} {{resultado.moneda}}</td>
@@ -123,14 +123,7 @@ export default {
     getDomingos(fecha) {
       moment(fecha).date(1);
       var dif = (7 + (0 - moment(fecha).weekday())) % 7 + 1;
-      console.log(
-        "weekday: " +
-          weekday +
-          ", FirstOfMonth: " +
-          moment(fecha).weekday() +
-          ", dif: " +
-          dif
-      );
+      console.log("FirstOfMonth: " + moment(fecha).weekday() + ", dif: " + dif);
       return Math.floor((moment(fecha).daysInMonth() - dif) / 7) + 1;
     },
     getDiasMes(fecha) {
@@ -140,11 +133,13 @@ export default {
     //Hacer un arrayfilter funcionario donde sera un array de los datos de un solo funcionario
     //del array resultante sumar horas trabajadas, sumar horas extras, calcular descuento u hora extra
     //calcular horas mes segun idsucursal
-    calcularSalario(fechaInicio, fechaFin) {
+    calcularSalario(fechaInicio, fechaFin, horasMes) {
+      horasMes = this.getDiasMes(fechaInicio);
       fechaInicio = moment(fechaInicio, "DD/MM/YYYY").format("L");
       fechaFin = moment(fechaFin, "DD/MM/YYYY").format("L");
       console.log("FECHAS" + fechaInicio, fechaFin);
-      this.getData(fechaInicio, fechaFin);
+      console.log("DIAS " + horasMes);
+      this.getData(fechaInicio, fechaFin, horasMes);
 
       // this.empleados.forEach(element => {
       //   console.log("Empleado Id" + element.id);
@@ -161,7 +156,7 @@ export default {
       // });
     },
 
-    async getData(fechaInicio, fechaFin) {
+    async getData(fechaInicio, fechaFin, horasMes) {
       try {
         const getMarcaciones = await axios.get(
           url +
@@ -217,6 +212,7 @@ export default {
           var marcacionEmpleado = {
             nombre: null,
             horasMes: null,
+            hmformat: null,
             horasTrabajadas: null,
             htformat: null,
             horasExtras: null,
@@ -241,6 +237,7 @@ export default {
             console.log("Nombre:" + marcacionEmpleado.nombre);
             marcacionEmpleado.salarioBase = value[0].empleado.salario;
             marcacionEmpleado.moneda = value[0].empleado.moneda;
+            marcacionEmpleado.horasMes = horasMes * 570;
             marcacionEmpleado.valorHoraExtra =
               marcacionEmpleado.horasExtras * value[0].empleado.salarioMinuto;
 
@@ -270,8 +267,61 @@ export default {
                 .asHours() %
                 1;
 
-            marcacionEmpleado.heformat =
-              horas + " Horas" + minutos + " Minutos";
+            if (minutos > 0 && horas > 0) {
+              marcacionEmpleado.heformat =
+                horas + " Horas " + minutos + " Minutos";
+            } else {
+              if (minutos < 0 && horas < 0) {
+                minutos = minutos * -1;
+                marcacionEmpleado.heformat =
+                  horas + " Horas " + minutos + " Minutos";
+              } else {
+                if (horas !== 0 && minutos === 0) {
+                  marcacionEmpleado.heformat = horas + " Horas";
+                } else {
+                  marcacionEmpleado.heformat = minutos + " Minutos";
+                }
+              }
+            }
+
+            var minuto = Math.floor(
+              (moment
+                .duration(marcacionEmpleado.horasTrabajadas, "minutes")
+                .asHours() %
+                1) *
+                60
+            );
+
+            var hora =
+              moment
+                .duration(marcacionEmpleado.horasTrabajadas, "minutes")
+                .asHours() -
+              moment
+                .duration(marcacionEmpleado.horasTrabajadas, "minutes")
+                .asHours() %
+                1;
+
+            marcacionEmpleado.htformat = hora + " Horas " + minuto + " minutos";
+
+            var minuto1 = Math.floor(
+              (moment
+                .duration(marcacionEmpleado.horasMes, "minutes")
+                .asHours() %
+                1) *
+                60
+            );
+
+            var hora1 =
+              moment.duration(marcacionEmpleado.horasMes, "minutes").asHours() -
+              moment.duration(marcacionEmpleado.horasMes, "minutes").asHours() %
+                1;
+
+            if (minuto1 > 0) {
+              marcacionEmpleado.hmformat =
+                hora1 + " Horas " + minuto1 + " Minutos ";
+            } else {
+              marcacionEmpleado.hmformat = hora1 + " Horas ";
+            }
 
             console.log(
               "RESULTADO POR EMPLEADO" + JSON.stringify(marcacionEmpleado)
