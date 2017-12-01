@@ -4,7 +4,7 @@
         <div class="ui form">
             <h4 class="ui dividing header">Listado de Salarios</h4>
             <div class="two fields">
-                <div class="field">
+                <div class="ui twelve wide field">
                     <label for="salaryQuery">Introducir rango de fechas:</label>
                     <div class="inline fields">
                         
@@ -19,7 +19,13 @@
                         </div>
 
                         <div class="field">
-                            <button class="ui teal button" @click="calcularSalario(fechaInicio, fechaFin)">Generar Salario</button>
+                          <div class="ui vertical teal button"  @click="calcularSalario(fechaInicio, fechaFin)">
+                            Generar Salario
+                          </div>
+                        </div>
+                        <div class="field">
+                            <button class="ui button" @click="limpiarCampos()">Limpiar</button>
+                          
                         </div>
                        
 
@@ -28,20 +34,11 @@
 
                 </div>
 
-                <div class="field">
+                <div class="ui four wide field">
 
-                    <div class="test">
-
-                        <div class="ui basic icon buttons">
-
-                            <button class="ui button">
-                                <i class="plus icon"></i>
-                            </button>
-                            <button class="ui button">
-                                <i class="upload icon"></i>
-                            </button>
-                            <button class="ui button">
-                               <download-excel
+                  <div class="ui right floated main menu">
+                    <a class="icon item">
+                      <download-excel
 	                            :data   = "json_data"
 	                            :fields = "json_fields"
 	                            :meta   = "json_meta"
@@ -51,10 +48,8 @@
 
 
                             </download-excel>
-                            </button>
-                        </div>
-
-                    </div>
+                    </a>
+                  </div>
 
                 </div>
 
@@ -75,12 +70,19 @@
 
                         </tr>
                     </thead>
+                    <!-- <div class="ui segment">
+  <p></p>
+  <div class="ui active dimmer">
+    <div class="ui loader"></div>
+  </div>
+</div> -->
                     <tbody>
+      
                         <tr v-for="resultado in marcacionesEmpleado" :key="resultado.nombre">
                             <td>{{resultado.nombre}}</td>
                             <td>{{resultado.hmformat }}</td>
-                            <td>{{resultado.horasTrabajadas}} {{resultado.htformat}}</td>
-                            <td>{{resultado.horasExtraAlternativa}} {{resultado.heformat}}</td>
+                            <td>{{resultado.htformat}}</td>
+                            <td>{{resultado.heformat}}</td>
                             <td>{{resultado.salarioBase}} {{resultado.moneda}}</td>
                             <td>{{resultado.valorHoraExtraAlternativa}} {{resultado.moneda}}</td>
                             <td>{{resultado.salarioNetoAlternativo}} {{resultado.moneda}}</td>
@@ -93,6 +95,12 @@
 
                     </tbody>
                 </table>
+ <div v-show="loading" class="ui segment large">
+  <div class="ui active inverted dimmer">
+    <div class="ui large text loader">Loading</div>
+  </div>
+ 
+</div>
 
             </div>
 
@@ -114,6 +122,7 @@ export default {
       marcaciones: [],
       empleados: [],
       marcacionesEmpleado: [],
+      loading: false,
       sucursales: [],
       feriadoSucursal: [],
       json_fields: {
@@ -142,6 +151,11 @@ export default {
     };
   },
   methods: {
+    limpiarCampos() {
+      this.fechaInicio = null;
+      this.fechaFin = null;
+      marcacionesEmpleado.length = 0;
+    },
     getDomingos(fecha) {
       moment(fecha).date(1);
       var dif = (7 + (0 - moment(fecha).weekday())) % 7 + 1;
@@ -179,6 +193,7 @@ export default {
     },
 
     async getData(fechaInicio, fechaFin, horasMes) {
+      this.loading = true;
       try {
         const getMarcaciones = await axios.get(
           url +
@@ -419,6 +434,7 @@ export default {
             this.json_data.push(marcacionEmpleado);
           }
         }
+        this.loading = false;
       }
 
       console.log(
@@ -450,5 +466,8 @@ export default {
 <style>
 .test {
   margin-top: 2em;
+}
+.ui.segment.large {
+  height: 400px;
 }
 </style>
