@@ -2,7 +2,7 @@
 <div class="ui twelve wide column">
         <div class="ui red segment">
                 <h1>Listado de Ausentes</h1>
-        <div class="ui celled list">
+        <!-- <div class="ui celled list">
   <div class="item">
           
     <div class="content">
@@ -24,7 +24,7 @@
       He's also a dog
     </div>
   </div>
-</div></div>
+</div></div> -->
 </div>
 
     
