@@ -75,7 +75,8 @@
 import { VMoney } from "v-money";
 import axios from "axios";
 import { eventBus } from "./../../main";
-const url = "http://localhost:3000";
+const url = "https://mdl-sisgesa-back.herokuapp.com";
+//const url = "http://localhost:3000";
 export default {
   data() {
     return {

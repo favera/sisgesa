@@ -77,8 +77,8 @@
 <script>
 import axios from "axios";
 import Pagination from ".././shared/Pagination.vue";
-//const url = "https://mdl-sisgesa-back.herokuapp.com";
-const url = "http://localhost:3000";
+const url = "https://mdl-sisgesa-back.herokuapp.com";
+//const url = "http://localhost:3000";
 
 export default {
   data() {

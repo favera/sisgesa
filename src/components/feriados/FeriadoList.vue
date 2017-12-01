@@ -68,8 +68,8 @@
 
 <script>
 import axios from "axios";
-//const url = "https://mdl-sisgesa-back.herokuapp.com";
-const url = "http://localhost:3000";
+const url = "https://mdl-sisgesa-back.herokuapp.com";
+//const url = "http://localhost:3000";
 export default {
   data() {
     return {
