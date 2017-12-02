@@ -133,6 +133,7 @@ export default {
         salarioBase: "Salario base",
         moneda: "Moneda",
         valorHoraExtra: "Valor Hora extra",
+        valorAusencias: "Valor Ausencias",
         salarioNeto: "Salario Neto"
       },
       json_data: [],
