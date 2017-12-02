@@ -277,7 +277,7 @@ export default {
             console.log("Nombre:" + marcacionEmpleado.nombre);
             marcacionEmpleado.salarioBase = value[0].empleado.salario;
             marcacionEmpleado.moneda = value[0].empleado.moneda;
-            marcacionEmpleado.horasMes = horasMes * 540;
+            marcacionEmpleado.horasMes = horasMes * 570;
 
             marcacionEmpleado.horasExtraAlternativa =
               marcacionEmpleado.horasTrabajadas - marcacionEmpleado.horasMes;
