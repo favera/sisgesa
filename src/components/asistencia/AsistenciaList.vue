@@ -165,8 +165,8 @@
 import moment from "moment";
 import axios from "axios";
 import Pagination from ".././shared/Pagination.vue";
-//const url = "https://mdl-sisgesa-back.herokuapp.com";
-const url = "http://localhost:3000";
+const url = "https://mdl-sisgesa-back.herokuapp.com";
+//const url = "http://localhost:3000";
 
 export default {
   data() {
@@ -333,11 +333,6 @@ export default {
           console.log(
             "Horario: " + moment(arr.Horario, "DD/MM/YYYY HH:mm a").format("LT")
           );
-        } else {
-          //ausencia.empleadoId = empleadoid;
-          //ausencia.fecha = moment(arr.Horario, "DD/MM/YYYY").format("L");
-          //this.ausencias.push(ausencia);
-          //console.log("*****Ausencias *****" + JSON.stringify(this.ausencias));
         }
       }
       if (modelo.empleadoId !== null) {

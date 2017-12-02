@@ -64,18 +64,15 @@
                             <th>Carga Laboral del Mes</th>
                             <th>Horas Trabajadas</th>
                             <th>Horas Extras</th>
+                            <!-- <th>Horas Extras Nocturnas</th> -->
                             <th>Salario Base</th>
                             <th>Hora Extra</th>
+                            <th>Valor Ausencias</th>
                             <th>Salario Neto</th>
 
                         </tr>
                     </thead>
-                    <!-- <div class="ui segment">
-  <p></p>
-  <div class="ui active dimmer">
-    <div class="ui loader"></div>
-  </div>
-</div> -->
+   
                     <tbody>
       
                         <tr v-for="resultado in marcacionesEmpleado" :key="resultado.nombre">
@@ -83,14 +80,12 @@
                             <td>{{resultado.hmformat }}</td>
                             <td>{{resultado.htformat}}</td>
                             <td>{{resultado.heformat}}</td>
+                            <!-- <td>{{resultado.horasExtrasNocturnas}}</td> -->
                             <td>{{resultado.salarioBase}} {{resultado.moneda}}</td>
-                            <td>{{resultado.valorHoraExtraAlternativa}} {{resultado.moneda}}</td>
-                            <td>{{resultado.salarioNetoAlternativo}} {{resultado.moneda}}</td>
+                            <td>{{resultado.valorHoraExtra}} {{resultado.moneda}}</td>
+                            <td>{{resultado.valorAusencias}}</td>
+                            <td>{{resultado.salarioNeto}} {{resultado.moneda}}</td>
 
-                            <!-- <td>
-                                    <i class="edit row icon"></i>
-                                    <i class="trash icon"></i>
-                                </td> -->
                         </tr>
 
                     </tbody>
@@ -111,8 +106,8 @@
 <script>
 import moment from "moment";
 import axios from "axios";
-//const url = "https://mdl-sisgesa-back.herokuapp.com";
-const url = "http://localhost:3000";
+const url = "https://mdl-sisgesa-back.herokuapp.com";
+//const url = "http://localhost:3000";
 export default {
   data() {
     return {
@@ -121,6 +116,7 @@ export default {
       feriados: [],
       marcaciones: [],
       empleados: [],
+      diasTrabajados: null,
       marcacionesEmpleado: [],
       loading: false,
       sucursales: [],
@@ -132,12 +128,12 @@ export default {
         horasMes: "Carga laboral en minutos",
         htformat: "Horas Trabajadas",
         horasTrabajadas: "Horas Trabajadas en minutos",
-        horasExtraAlternativa: "Horas Extras",
+        horasExtra: "Horas Extras",
         heformat: "Horas Extras en minutos",
         salarioBase: "Salario base",
         moneda: "Moneda",
-        valorHoraExtraAlternativa: "Valor Hora extra",
-        salarioNetoAlternativo: "Salario Neto"
+        valorHoraExtra: "Valor Hora extra",
+        salarioNeto: "Salario Neto"
       },
       json_data: [],
       json_meta: [
@@ -164,6 +160,9 @@ export default {
     },
     getDiasMes(fecha) {
       var domingos = this.getDomingos(fecha);
+      console.log("DOMINGOS" + domingos);
+      console.log("Fecha" + fecha);
+      console.log("Dias Mes" + moment(fecha).daysInMonth());
       return moment(fecha).daysInMonth() - domingos;
     },
     //Hacer un arrayfilter funcionario donde sera un array de los datos de un solo funcionario
@@ -171,25 +170,12 @@ export default {
     //calcular horas mes segun idsucursal
     calcularSalario(fechaInicio, fechaFin, horasMes) {
       horasMes = this.getDiasMes(fechaInicio);
+      console.log(" Dias MES" + horasMes);
       fechaInicio = moment(fechaInicio, "DD/MM/YYYY").format("L");
       fechaFin = moment(fechaFin, "DD/MM/YYYY").format("L");
       console.log("FECHAS" + fechaInicio, fechaFin);
       console.log("DIAS " + horasMes);
       this.getData(fechaInicio, fechaFin, horasMes);
-
-      // this.empleados.forEach(element => {
-      //   console.log("Empleado Id" + element.id);
-      //   empleadosId.push(element.id);
-      // });
-
-      //console.log("Array resultado Empleado ID" + empleadosId);
-
-      // Array.from(this.marcaciones).forEach(empleado => {
-      //   var marcacionesEmpleados = this.marcaciones.find(
-      //     index => index.empleadoId === empleado.empleadoId
-      //   );
-      //   console.log("RESULTADO" + JSON.stringify(marcacionesEmpleados));
-      // });
     },
 
     async getData(fechaInicio, fechaFin, horasMes) {
@@ -243,7 +229,8 @@ export default {
       if (resultado.length > 0) {
         for (var i = 0; i < resultado.length; i++) {
           var value = resultado[i];
-
+          var diasTrabajados = value.length;
+          console.log("Dias Trabajados" + diasTrabajados);
           console.log("Value" + JSON.stringify(resultado[i]));
 
           var marcacionEmpleado = {
@@ -260,7 +247,9 @@ export default {
             valorHoraExtra: null,
             salarioNeto: null,
             salarioNetoAlternativo: null,
-            valorHoraExtraAlternativa: null
+            valorHoraExtraAlternativa: null,
+            horasExtrasNocturnas: null,
+            valorAusencias: null
           };
           if (value.length > 0) {
             for (let element of value) {
@@ -270,6 +259,17 @@ export default {
               marcacionEmpleado.horasExtras =
                 marcacionEmpleado.horasExtras +
                 moment.duration(element.horasExtras, "HH:mm").asMinutes();
+
+              if (moment.duration(element.salida, "HH:mm").asMinutes() > 1200) {
+                marcacionEmpleado.horasExtrasNocturnas =
+                  moment.duration(
+                    moment.duration(element.salida, "HH:mm").asMinutes()
+                  ) - 1200;
+
+                console.log(
+                  "Hora Extra Noctura" + marcacionEmpleado.horasExtrasNocturnas
+                );
+              }
             }
             //copiar hanlde para minutos para mostrar en el informe,
             //caclcular total laboral mes
@@ -277,7 +277,8 @@ export default {
             console.log("Nombre:" + marcacionEmpleado.nombre);
             marcacionEmpleado.salarioBase = value[0].empleado.salario;
             marcacionEmpleado.moneda = value[0].empleado.moneda;
-            marcacionEmpleado.horasMes = horasMes * 570;
+            marcacionEmpleado.horasMes = horasMes * 540;
+
             marcacionEmpleado.horasExtraAlternativa =
               marcacionEmpleado.horasTrabajadas - marcacionEmpleado.horasMes;
             console.log(
@@ -297,39 +298,39 @@ export default {
                 marcacionEmpleado.valorHoraExtraAlternativa
             ).toLocaleString();
 
-            var minutos = Math.floor(
-              (moment
-                .duration(marcacionEmpleado.horasExtraAlternativa, "minutes")
-                .asHours() %
-                1) *
-                60
-            );
+            // var minutosHA = Math.floor(
+            //   (moment
+            //     .duration(marcacionEmpleado.horasExtraAlternativa, "minutes")
+            //     .asHours() %
+            //     1) *
+            //     60
+            // );
 
-            var horas =
-              moment
-                .duration(marcacionEmpleado.horasExtraAlternativa, "minutes")
-                .asHours() -
-              moment
-                .duration(marcacionEmpleado.horasExtraAlternativa, "minutes")
-                .asHours() %
-                1;
+            // var horasHA =
+            //   moment
+            //     .duration(marcacionEmpleado.horasExtraAlternativa, "minutes")
+            //     .asHours() -
+            //   moment
+            //     .duration(marcacionEmpleado.horasExtraAlternativa, "minutes")
+            //     .asHours() %
+            //     1;
 
-            if (minutos > 0 && horas > 0) {
-              marcacionEmpleado.heformat =
-                horas + " Horas " + minutos + " Minutos";
-            } else {
-              if (minutos < 0 && horas < 0) {
-                minutos = minutos * -1;
-                marcacionEmpleado.heformat =
-                  horas + " Horas " + minutos + " Minutos";
-              } else {
-                if (horas !== 0 && minutos === 0) {
-                  marcacionEmpleado.heformat = horas + " Horas";
-                } else {
-                  marcacionEmpleado.heformat = minutos + " Minutos";
-                }
-              }
-            }
+            // if (minutosHA > 0 && horasHA > 0) {
+            //   marcacionEmpleado.heformat =
+            //     horasHA + " Horas " + minutosHA + " Minutos";
+            // } else {
+            //   if (minutos < 0 && horas < 0) {
+            //     minutosHA = minutosHA * -1;
+            //     marcacionEmpleado.heformat =
+            //       horasHA + " Horas " + minutosHA + " Minutos";
+            //   } else {
+            //     if (horasHA !== 0 && minutosHA === 0) {
+            //       marcacionEmpleado.heformat = horasHA + " Horas";
+            //     } else {
+            //       marcacionEmpleado.heformat = minutosHA + " Minutos";
+            //     }
+            //   }
+            // }
 
             marcacionEmpleado.valorHoraExtraAlternativa = Math.floor(
               marcacionEmpleado.valorHoraExtraAlternativa
@@ -340,21 +341,58 @@ export default {
             marcacionEmpleado.valorHoraExtra =
               marcacionEmpleado.horasExtras * value[0].empleado.salarioMinuto;
 
-            marcacionEmpleado.salarioNeto = Math.floor(
-              parseInt(marcacionEmpleado.salarioBase.split(".").join("")) +
-                marcacionEmpleado.valorHoraExtra
-            ).toLocaleString();
-
             if (marcacionEmpleado.valorHoraExtra < 0) {
               marcacionEmpleado.valorHoraExtra =
                 marcacionEmpleado.valorHoraExtra * 2;
+            } else {
+              marcacionEmpleado.valorHoraExtra =
+                marcacionEmpleado.valorHoraExtra +
+                marcacionEmpleado.valorHoraExtra / 2;
+            }
+
+            marcacionEmpleado.valorAusencias = Math.floor(
+              (diasTrabajados - horasMes) *
+                480 *
+                value[0].empleado.salarioMinuto
+            );
+
+            var compensacion = Math.floor(
+              value[0].empleado.salarioMinuto * 60 * 8 * (30 - horasMes)
+            );
+
+            if (marcacionEmpleado.valorAusencias < 0) {
+              console.log(
+                "SALARIO BASE" +
+                  parseInt(marcacionEmpleado.salarioBase.split(".").join(""))
+              );
+              console.log(
+                "VALOR HORA EXTRA" + marcacionEmpleado.valorHoraExtra
+              );
+              console.log(
+                "VALOR AUSENCIAS " + marcacionEmpleado.valorAusencias
+              );
+
+              console.log("VALOR COMPENSACION" + compensacion);
+
+              marcacionEmpleado.salarioNeto = Math.floor(
+                parseInt(marcacionEmpleado.salarioBase.split(".").join("")) +
+                  marcacionEmpleado.valorHoraExtra +
+                  marcacionEmpleado.valorAusencias -
+                  compensacion
+              ).toLocaleString();
+            } else {
+              marcacionEmpleado.valorAusencias = 0;
+              marcacionEmpleado.salarioNeto = Math.floor(
+                parseInt(marcacionEmpleado.salarioBase.split(".").join("")) +
+                  marcacionEmpleado.valorHoraExtra
+              ).toLocaleString();
             }
 
             marcacionEmpleado.valorHoraExtra = Math.floor(
               marcacionEmpleado.valorHoraExtra
             ).toLocaleString();
 
-            /* var minutos = Math.floor(
+            var minutos = Math.floor(
               (moment
                 .duration(marcacionEmpleado.horasExtras, "minutes")
                 .asHours() %
@@ -386,7 +424,7 @@ export default {
                   marcacionEmpleado.heformat = minutos + " Minutos";
                 }
               }
-            }*/
+            }
 
             var minuto = Math.ceil(
               (moment
