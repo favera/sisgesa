@@ -1,7 +1,7 @@
 <template>
-<div class="ui twelve wide column">
+<!-- <div class="ui twelve wide column">
         <div class="ui red segment">
-                <h1>Listado de Ausentes</h1>
+                <h1>Listado de Ausentes</h1> -->
         <!-- <div class="ui celled list">
   <div class="item">
           
@@ -25,7 +25,7 @@
     </div>
   </div>
 </div></div> -->
-</div>
+<!-- </div> -->
 
     
 </template>

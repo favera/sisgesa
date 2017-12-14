@@ -165,8 +165,8 @@
 import moment from "moment";
 import axios from "axios";
 import Pagination from ".././shared/Pagination.vue";
-const url = "https://mdl-sisgesa-back.herokuapp.com";
-//const url = "http://localhost:3000";
+//const url = "https://mdl-sisgesa-back.herokuapp.com";
+const url = "http://localhost:3000";
 
 export default {
   data() {
@@ -232,7 +232,10 @@ export default {
       this.datosMarcaciones.length = 0;
     },
     abrirModal() {
-      this.modal.modal("setting", { detachable: false }).modal("show");
+      this.modal
+        .modal("setting", { observeChanges: true })
+        .modal("show")
+        .modal("refresh");
     },
     confirmarArchivo() {
       this.marcaciones = this.datosMarcaciones;
@@ -702,5 +705,9 @@ export default {
 }
 .el-date-editor.el-input {
   width: 160px;
+}
+
+.ui.longer.modal {
+  height: 700px;
 }
 </style>
