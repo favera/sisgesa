@@ -106,8 +106,8 @@
 <script>
 import moment from "moment";
 import axios from "axios";
-const url = "https://mdl-sisgesa-back.herokuapp.com";
-//const url = "http://localhost:3000";
+import { url } from "./../.././config/backend";
+
 export default {
   data() {
     return {

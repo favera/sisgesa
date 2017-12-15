@@ -165,8 +165,7 @@
 import moment from "moment";
 import axios from "axios";
 import Pagination from ".././shared/Pagination.vue";
-const url = "https://mdl-sisgesa-back.herokuapp.com";
-//const url = "http://localhost:3000";
+import { url } from "./../.././config/backend";
 
 export default {
   data() {
@@ -232,21 +231,41 @@ export default {
       this.datosMarcaciones.length = 0;
     },
     abrirModal() {
-      this.modal.modal("setting", { detachable: false }).modal("show");
+      this.modal
+        .modal("setting", { observeChanges: true })
+        .modal("show")
+        .modal("refresh");
     },
     confirmarArchivo() {
+      Array.from(this.funcionarios).forEach(value => {
+        console.log("EMPLEADO " + value.nombre + value.id);
+
+        var ausencia = this.datosMarcaciones.findIndex(item => {
+          return item.empleadoId === value.id;
+        });
+
+        if (ausencia === -1) {
+          var funcionarioAusente = {};
+          funcionarioAusente.fecha = this.datosMarcaciones[0].fecha;
+          funcionarioAusente.empleadoId = value.id;
+          funcionarioAusente.horasExtras = moment
+            .duration(value.cargaLaboral, "HH:mm")
+            .asMinutes();
+          funcionarioAusente.entrada = null;
+          funcionarioAusente.salida = null;
+          funcionarioAusente.isConfirmed = false;
+          console.log("AUSENTES " + value.nombre);
+          this.ausencias.push(funcionarioAusente);
+        }
+      });
+
       this.marcaciones = this.datosMarcaciones;
+      this.marcaciones.unshift(this.ausencias);
       console.log(
         "Contenido de Array Marcaciones" + JSON.stringify(this.marcaciones)
       );
       this.confirmData();
       this.datosMarcaciones.length = 0;
-      // Array.from(this.ausencias).forEach(ausencia => {
-      //   axios.post(url+"/ausencias").then(response => {
-      //     empleadoId: this.ausencias.empleadoId;
-      //     fecha: this.ausencias.fecha;
-      //   });
-      // });
     },
     nuevaAsistencia() {
       this.$router.push("/nuevaAsistencia");
@@ -311,8 +330,7 @@ export default {
         empleadoId: null,
         fecha: null
       };
-      //console.log("Hora Extra Inicial " + modelo.horasExtras);
-      //propiedad que habilita o desabilita el boton de confirmar basado en el estado de isConfirmed
+
       this.applyCss = modelo.isConfirmed;
       for (let arr of this.preDatos) {
         if (acnro === arr["AC-No."]) {
@@ -443,15 +461,6 @@ export default {
       //cambia de color en la lista
       this.applyCss = true;
       console.log("after async");
-    },
-    async prepareData() {
-      const getBancoHora = await axios.get(url + "/bancoHora");
-      const getMarcaciones = await axios.get(url + "/marcaciones");
-      const [marcaciones, bancoHora] = await Promise.all([
-        getMarcaciones,
-        getBancoHora
-      ]);
-      console.log(marcaciones.data(), bancoHora.data());
     },
     handleHorasTrabajadas(entrada, salida) {
       var result = moment("00:00", "hh:mm").format("00:00");
@@ -697,5 +706,9 @@ export default {
 }
 .el-date-editor.el-input {
   width: 160px;
+}
+
+.ui.longer.modal {
+  height: 700px;
 }
 </style>
