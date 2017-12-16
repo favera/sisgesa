@@ -127,7 +127,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="marcacion in marcaciones" :key="marcacion.id">
+                        <tr v-for="marcacion in marcaciones" :key="marcacion.id" v-bind:class="{error: marcacion.estilo.ausente, warning: marcacion.estilo.incompleto }" >
                             <td>{{marcacion.empleado.nombre}}</td>
                             <td>{{marcacion.fecha}}</td>
                             <td>{{(marcacion.entrada || "--") + " hs"}}</td>
@@ -173,7 +173,8 @@ export default {
       datosMarcaciones: [],
       marcaciones: [],
       preDatos: [],
-      applyCss: true,
+      ausente: false,
+      atrasado: false,
       modal: null,
       errors: [],
       funcionarios: [],
@@ -248,6 +249,7 @@ export default {
           var funcionarioAusente = {};
           funcionarioAusente.fecha = this.datosMarcaciones[0].fecha;
           funcionarioAusente.empleadoId = value.id;
+          funcionarioAusente.nombre = value.nombre;
           funcionarioAusente.horasExtras = moment
             .duration(value.cargaLaboral, "HH:mm")
             .asMinutes();
@@ -259,8 +261,8 @@ export default {
         }
       });
 
-      this.marcaciones = this.datosMarcaciones;
-      this.marcaciones.unshift(this.ausencias);
+      this.marcaciones = this.datosMarcaciones.concat(this.ausencias);
+
       console.log(
         "Contenido de Array Marcaciones" + JSON.stringify(this.marcaciones)
       );
@@ -271,7 +273,7 @@ export default {
       this.$router.push("/nuevaAsistencia");
     },
     llamarFuncionarios() {
-      axios.get(url + "/empleados").then(response => {
+      axios.get(url + "/empleados?_expand=sucursal").then(response => {
         (this.funcionarios = response.data), console.log("entro en axios");
       });
     },
@@ -437,13 +439,17 @@ export default {
                   marcacion.entrada,
                   marcacion.salida
                 ),
+
                 //calculo de horas Extras
                 horasExtras: this.handleHorasExtras(
                   marcacion.entrada,
                   marcacion.salida,
                   marcacion.horasExtras
                 ),
-                isConfirmed: true
+                //calculo de retraso
+                retraso: this.calcularRetraso(marcacion.entrada),
+                isConfirmed: true,
+                estilo: this.aplicarEstilo(marcacion.entrada, marcacion.salida)
               })
               .then(function(response) {
                 console.log("from async" + response);
@@ -456,11 +462,31 @@ export default {
           }
         })
       );
-      //llama la lista
+
       this.obtenerDatos();
       //cambia de color en la lista
       this.applyCss = true;
       console.log("after async");
+    },
+    calcularRetraso(entrada) {},
+    aplicarEstilo(entrada, salida) {
+      var estilo = {};
+      estilo.ausente = false;
+      estilo.incompleto = false;
+      if (entrada == null && salida == null) {
+        console.log("DESDE ESTILO " + entrada, salida);
+        estilo.ausente = true;
+        estilo.incompleto = false;
+        return estilo;
+      } else {
+        if (entrada == null || salida == null) {
+          console.log("DESDE ESTILO " + entrada, salida);
+          estilo.ausente = false;
+          estilo.incompleto = true;
+          return estilo;
+        }
+      }
+      return estilo;
     },
     handleHorasTrabajadas(entrada, salida) {
       var result = moment("00:00", "hh:mm").format("00:00");
@@ -478,7 +504,7 @@ export default {
       var horasTrabajadas = this.handleHorasTrabajadas(entrada, salida),
         result;
       console.log("Horas Extras " + horasExtras);
-      console.log("Horas trabajadas " + horasTrabajadas);
+      //console.log("Horas trabajadas " + horasTrabajadas);
       if (!horasTrabajadas.localeCompare("00:00")) {
         return "-" + moment.utc(horasExtras * 1000 * 60).format("HH:mm");
       } else {

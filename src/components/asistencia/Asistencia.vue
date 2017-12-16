@@ -94,7 +94,8 @@ export default {
               this.marcacion.entrada,
               this.marcacion.salida
             ),
-            isConfirmed: true
+            isConfirmed: true,
+            estilo: this.aplicarEstilo(marcacion.entrada, marcacion.salida)
           })
           .then(response => {
             console.log(response);
@@ -124,7 +125,8 @@ export default {
               this.marcacion.entrada,
               this.marcacion.salida
             ),
-            isConfirmed: true
+            isConfirmed: true,
+            estilo: this.aplicarEstilo(marcacion.entrada, marcacion.salida)
           })
           .then(response => {
             console.log(response);
@@ -132,6 +134,21 @@ export default {
             this.cancelar();
           })
           .catch(e => console.log(e));
+      }
+    },
+    aplicarEstilo(entrada, salida) {
+      if (entrada === null && salida === null) {
+        return {
+          ausente: true,
+          incompleto: false
+        };
+      } else {
+        if (entrada === null || salida === null) {
+          return {
+            ausente: false,
+            incompleto: true
+          };
+        }
       }
     },
     getHorasTrabajadas(entrada, salida) {

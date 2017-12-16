@@ -8,7 +8,8 @@
     </div>
     <div class="ui left inverted vertical menu visible sidebar">
       <div class="header item">
-        <h4>MDL | SISGESA </h4>
+        <h4> <router-link class="item" :to="{name: 'Home'}">MDL | SISGESA</router-link>
+           </h4>
         <p>sistema de Gestion Salarial</p>
       </div>
       <router-link class="item" active-class="active" :to="{name: 'listadoAsistencia'}">Asistencia</router-link>
@@ -32,9 +33,7 @@
 export default {
   name: "app",
   data() {
-    return {
-      msg: "Welcome to Your Vue.js App"
-    };
+    return {};
   },
   components: {}
 };
