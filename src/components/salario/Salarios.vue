@@ -123,13 +123,11 @@ export default {
       feriadoSucursal: [],
       json_fields: {
         nombre: "Funcionario",
-        hmformat:
-          "Carga Laboral " + moment(this.fechaInicio, "month").format("MMMM"),
+        hmformat: "Carga Laboral ",
         horasMes: "Carga laboral en minutos",
         htformat: "Horas Trabajadas",
         horasTrabajadas: "Horas Trabajadas en minutos",
-        horasExtra: "Horas Extras",
-        heformat: "Horas Extras en minutos",
+        heformat: "Horas Extras",
         salarioBase: "Salario base",
         moneda: "Moneda",
         valorHoraExtra: "Valor Hora extra",
