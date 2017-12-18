@@ -95,7 +95,10 @@ export default {
               this.marcacion.salida
             ),
             isConfirmed: true,
-            estilo: this.aplicarEstilo(marcacion.entrada, marcacion.salida)
+            estilo: this.aplicarEstilo(
+              this.marcacion.entrada,
+              this.marcacion.salida
+            )
           })
           .then(response => {
             console.log(response);
@@ -126,7 +129,10 @@ export default {
               this.marcacion.salida
             ),
             isConfirmed: true,
-            estilo: this.aplicarEstilo(marcacion.entrada, marcacion.salida)
+            estilo: this.aplicarEstilo(
+              this.marcacion.entrada,
+              this.marcacion.salida
+            )
           })
           .then(response => {
             console.log(response);
@@ -137,19 +143,23 @@ export default {
       }
     },
     aplicarEstilo(entrada, salida) {
-      if (entrada === null && salida === null) {
-        return {
-          ausente: true,
-          incompleto: false
-        };
+      var estilo = {};
+      estilo.ausente = false;
+      estilo.incompleto = false;
+      if (entrada == null && salida == null) {
+        console.log("DESDE ESTILO " + entrada, salida);
+        estilo.ausente = true;
+        estilo.incompleto = false;
+        return estilo;
       } else {
-        if (entrada === null || salida === null) {
-          return {
-            ausente: false,
-            incompleto: true
-          };
+        if (entrada == null || salida == null) {
+          console.log("DESDE ESTILO " + entrada, salida);
+          estilo.ausente = false;
+          estilo.incompleto = true;
+          return estilo;
         }
       }
+      return estilo;
     },
     getHorasTrabajadas(entrada, salida) {
       var horasTrabajadas = moment(salida).diff(entrada, "minutes");

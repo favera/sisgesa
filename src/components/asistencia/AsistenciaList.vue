@@ -121,8 +121,9 @@
                             <th>Marcacion Entrada</th>
                             <th>Marcacion Salida</th>
                             <th>Horas Trabajadas</th>
-                            <th>Horas Extras o Faltantes</th>
-                            <th>Observacion</th>
+                            <th>Retraso</th>
+                            <th>Banco de Horas</th>
+                            <!-- <th>Observacion</th> -->
                             <th>Opciones</th>
                         </tr>
                     </thead>
@@ -133,8 +134,8 @@
                             <td>{{(marcacion.entrada || "--") + " hs"}}</td>
                             <td>{{(marcacion.salida || "--") + " hs"}}</td>
                             <td>{{marcacion.horasTrabajadas + " hs"}}</td>
+                            <td>{{marcacion.retraso + " hs"}}</td>
                             <td>{{marcacion.horasExtras + " hs"}} </td>
-                            <td></td>
                             <td>
                                 <i @click="guardarPaginacion(marcacion.id)" class="edit row icon"></i>
                                 <i @click="confirm(marcacion.id)" class="trash icon"></i>
@@ -313,24 +314,27 @@ export default {
       this.preDatos = convertedData.body;
       //console.log("Datos" + this.preDatos);
       Array.from(this.funcionarios).forEach(value => {
-        this.orderData(value.acnro, value.id, value.nombre, value.cargaLaboral);
+        this.orderData(
+          value.acnro,
+          value.id,
+          value.nombre,
+          value.cargaLaboral,
+          value.sucursal.horarioEntrada
+        );
       });
       this.abrirModal();
     },
-    orderData(acnro, empleadoid, nombre, cargaLaboral) {
+    orderData(acnro, empleadoid, nombre, cargaLaboral, horaEntrada) {
       var modelo = {
         fecha: "",
         empleadoId: null,
         nombre: "",
         horasExtras: "",
+        horaEntrada: horaEntrada,
         entrada: null,
         salida: null,
         horarios: [],
         isConfirmed: false
-      };
-      var ausencia = {
-        empleadoId: null,
-        fecha: null
       };
 
       this.applyCss = modelo.isConfirmed;
@@ -447,7 +451,10 @@ export default {
                   marcacion.horasExtras
                 ),
                 //calculo de retraso
-                retraso: this.calcularRetraso(marcacion.entrada),
+                retraso: this.calcularRetraso(
+                  marcacion.entrada,
+                  marcacion.horaEntrada
+                ),
                 isConfirmed: true,
                 estilo: this.aplicarEstilo(marcacion.entrada, marcacion.salida)
               })
@@ -468,7 +475,24 @@ export default {
       this.applyCss = true;
       console.log("after async");
     },
-    calcularRetraso(entrada) {},
+    calcularRetraso(entrada, horaEntrada) {
+      var entrada = moment.duration(entrada, "HH:mm").asMinutes();
+      console.log("Entrada ", entrada);
+      var horaEntrada = moment.duration(horaEntrada, "HH:mm").asMinutes();
+      console.log("Hora Entrada ", horaEntrada);
+
+      var retraso = horaEntrada - entrada;
+
+      console.log("Resultado retraso ", retraso);
+
+      if (retraso < 0) {
+        retraso = retraso * 2;
+        return this.handleNegative(retraso);
+      } else {
+        retraso = "";
+        return retraso;
+      }
+    },
     aplicarEstilo(entrada, salida) {
       var estilo = {};
       estilo.ausente = false;
