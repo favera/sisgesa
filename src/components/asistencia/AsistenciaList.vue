@@ -148,8 +148,19 @@
                     </tbody>
 
                     <tfoot v-if="pageOne.totalItems > 0">
+                        <tr v-show="totalRetraso">
+                          <th></th>
+                          <th></th>
+                          <th></th>
+                          <th></th>
+                          <th></th>
+                          <th>{{totalBancoHora}} Minutos</th>
+                          <th>{{totalRetraso}} Minutos</th>
+                          <th></th>
+                           
+                        </tr>
                         <tr>
-                            <th colspan="8">
+                           <th colspan="8">
                                 <app-pagination :current-page="pageOne.currentPage" :total-items="pageOne.totalItems" :items-per-page="pageOne.itemsPerPage" @page-changed="pageOneChanged">
                                 </app-pagination>
                             </th>
@@ -185,6 +196,8 @@ export default {
       searchDateStart: "",
       searchDateEnd: "",
       ausencias: [],
+      totalBancoHora: 0,
+      totalRetraso: 0,
       pageOne: {
         currentPage: 1,
         totalItems: 0,
@@ -197,8 +210,8 @@ export default {
         entrada: "Entrada",
         salida: "Salida",
         horasTrabajadas: "Horas Trabajadas",
-        horasExtras: "Horas Extras",
-        horasExtrasMinutos: "Horas Extras en Minutos"
+        bancoHora: "Banco de Horas",
+        retraso: "Horas faltantes"
       },
       json_data: [],
       json_meta: [
@@ -633,19 +646,27 @@ export default {
           }
         }
         console.log(query);
+        this.totalBancoHora = 0;
+        this.totalRetraso = 0;
         axios
           .get(query + "&_expand=empleado")
           .then(response => {
             this.marcaciones = response.data;
             Array.from(this.marcaciones).forEach(item => {
+              this.totalBancoHora =
+                this.totalBancoHora +
+                moment.duration(item.bancoHora, "HH:mm").asMinutes();
+              this.totalRetraso =
+                this.totalRetraso +
+                moment.duration(item.retraso, "HH:mm").asMinutes();
               var informe = {
                 funcionario: null,
                 fecha: null,
                 entrada: null,
                 salida: null,
-                horasExtras: null,
                 horasTrabajadas: null,
-                horasExtrasMinutos: null
+                bancoHora: null,
+                retraso: null
               };
               console.log("item array" + JSON.stringify(item));
               informe.funcionario = item.empleado.nombre;
@@ -653,10 +674,10 @@ export default {
               informe.entrada = item.entrada;
               informe.salida = item.salida;
               informe.horasTrabajadas = item.horasTrabajadas;
-              informe.horasExtras = item.horasExtras;
-              informe.horasExtrasMinutos = moment
-                .duration(item.horasExtras, "HH:mm")
-                .asMinutes();
+              informe.bancoHora = item.bancoHora || "";
+
+              informe.retraso = item.retraso || "";
+              console.log("Banco Hora ", item.bancoHora);
               this.json_data.push(informe);
               console.log(
                 JSON.stringify("JSON DATA" + JSON.stringify(this.json_data))
