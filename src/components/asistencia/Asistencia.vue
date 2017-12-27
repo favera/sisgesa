@@ -171,7 +171,9 @@ export default {
             .duration(element.sucursal.horarioEntrada, "HH:mm")
             .asMinutes();
           console.log("HORARIO ENTRADA FUNCIONARIO", horaEntrada);
-          horaSalida = moment.duration(element.sucursal.horarioSalida);
+          horaSalida = moment
+            .duration(element.sucursal.horarioSalida)
+            .asMinutes();
           console.log("HORARIO SALIDA FUNCIONARIO", horaSalida);
         }
       });
@@ -216,7 +218,9 @@ export default {
             .duration(element.sucursal.horarioEntrada, "HH:mm")
             .asMinutes();
           console.log("HORARIO ENTRADA FUNCIONARIO", horaEntrada);
-          horaSalida = moment.duration(element.sucursal.horarioSalida);
+          horaSalida = moment
+            .duration(element.sucursal.horarioSalida)
+            .asMinutes();
           console.log("HORARIO SALIDA FUNCIONARIO", horaSalida);
         }
       });
