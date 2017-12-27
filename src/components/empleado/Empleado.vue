@@ -42,6 +42,26 @@
                 </div>
             </div>
 
+            <div class="ten wide field">
+              <div class="field">
+                <label>Tipo de Hora Extra</label></div>
+              <div class="inline fields">
+                <div class="field">
+                   <div class="ui radio checkbox">
+                            <input type="radio" value="bancoHora" v-model="empleado.tipoHoraExtra">
+                            <label>Banco de Hora</label>
+                        </div>
+                </div>
+
+                <div class="field">
+                  <div class="ui radio checkbox">
+                            <input type="radio" value="efectivo" v-model="empleado.tipoHoraExtra">
+                            <label>Efectivo</label>
+                        </div>
+                </div>
+              </div>
+            </div>
+
             <div class="two fields">
                 <div class="five wide field">
                     <label for="">Salario Base:</label>
@@ -84,6 +104,7 @@ export default {
         nombre: "",
         acnro: "",
         tipoCarga: "calculado",
+        tipoHoraExtra: "bancoHora",
         cargaLaboral: "",
         salario: "",
         moneda: "",
@@ -113,6 +134,7 @@ export default {
             nombre: this.empleado.nombre,
             acnro: this.empleado.acnro,
             tipoCarga: this.empleado.tipoCarga,
+            tipoHoraExtra: this.empleado.tipoHoraExtra,
             cargaLaboral: this.empleado.cargaLaboral,
             salario: this.empleado.salario,
             salarioMinuto: this.calcularSalarioMinuto(this.empleado.salario),
@@ -131,6 +153,7 @@ export default {
             nombre: this.empleado.nombre,
             acnro: this.empleado.acnro,
             tipoCarga: this.empleado.tipoCarga,
+            tipoHoraExtra: this.empleado.tipoHoraExtra,
             cargaLaboral: this.empleado.cargaLaboral,
             salario: this.empleado.salario,
             salarioMinuto: this.calcularSalarioMinuto(this.empleado.salario),
@@ -153,6 +176,7 @@ export default {
             this.empleado.nombre = response.data.nombre;
             this.empleado.acnro = response.data.acnro;
             this.empleado.cargaLaboral = response.data.cargaLaboral;
+            this.empleado.tipoHoraExtra = response.data.tipoHoraExtra;
             this.empleado.salario = response.data.salario;
             this.empleado.moneda = response.data.moneda;
             this.empleado.sucursalId = response.data.sucursalId;

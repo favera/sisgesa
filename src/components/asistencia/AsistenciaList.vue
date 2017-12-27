@@ -121,8 +121,9 @@
                             <th>Marcacion Entrada</th>
                             <th>Marcacion Salida</th>
                             <th>Horas Trabajadas</th>
-                            <th>Retraso</th>
                             <th>Banco de Horas</th>
+                            <th>Horas Faltantes</th>
+                            <!-- <th>Banco de Horas</th> -->
                             <!-- <th>Observacion</th> -->
                             <th>Opciones</th>
                         </tr>
@@ -134,8 +135,9 @@
                             <td>{{(marcacion.entrada || "--") + " hs"}}</td>
                             <td>{{(marcacion.salida || "--") + " hs"}}</td>
                             <td>{{marcacion.horasTrabajadas + " hs"}}</td>
-                            <td>{{marcacion.retraso + " hs"}}</td>
-                            <td>{{marcacion.horasExtras + " hs"}} </td>
+                            <td>{{(marcacion.bancoHora || "--") + " hs"}} </td>
+                            <td>{{(marcacion.retraso || "--" )+ " hs"}}</td>
+                            <!-- <td>{{marcacion.horasExtras + " hs"}} </td> -->
                             <td>
                                 <i @click="guardarPaginacion(marcacion.id)" class="edit row icon"></i>
                                 <i @click="confirm(marcacion.id)" class="trash icon"></i>
@@ -319,18 +321,27 @@ export default {
           value.id,
           value.nombre,
           value.cargaLaboral,
-          value.sucursal.horarioEntrada
+          value.sucursal.horarioEntrada,
+          value.sucursal.horarioSalida
         );
       });
       this.abrirModal();
     },
-    orderData(acnro, empleadoid, nombre, cargaLaboral, horaEntrada) {
+    orderData(
+      acnro,
+      empleadoid,
+      nombre,
+      cargaLaboral,
+      horaEntrada,
+      horaSalida
+    ) {
       var modelo = {
         fecha: "",
         empleadoId: null,
         nombre: "",
         horasExtras: "",
         horaEntrada: horaEntrada,
+        horaSalida: horaSalida,
         entrada: null,
         salida: null,
         horarios: [],
@@ -453,7 +464,16 @@ export default {
                 //calculo de retraso
                 retraso: this.calcularRetraso(
                   marcacion.entrada,
-                  marcacion.horaEntrada
+                  marcacion.horaEntrada,
+                  marcacion.salida,
+                  marcacion.horaSalida
+                ),
+                //calculo de Banco de Hora
+                bancoHora: this.calculoBancoHora(
+                  marcacion.entrada,
+                  marcacion.horaEntrada,
+                  marcacion.salida,
+                  marcacion.horaSalida
                 ),
                 isConfirmed: true,
                 estilo: this.aplicarEstilo(marcacion.entrada, marcacion.salida)
@@ -475,22 +495,54 @@ export default {
       this.applyCss = true;
       console.log("after async");
     },
-    calcularRetraso(entrada, horaEntrada) {
-      var entrada = moment.duration(entrada, "HH:mm").asMinutes();
-      console.log("Entrada ", entrada);
-      var horaEntrada = moment.duration(horaEntrada, "HH:mm").asMinutes();
-      console.log("Hora Entrada ", horaEntrada);
+    calculoBancoHora(entrada, horaEntrada, salida, horaSalida) {
+      var entradaBH = moment.duration(entrada, "HH:mm").asMinutes();
+      var horaEntradaBH = moment.duration(horaEntrada, "HH:mm").asMinutes();
+      var salidaBH = moment.duration(salida, "HH:mm").asMinutes();
+      var horaSalida = moment.duration(horaSalida, "HH:mm").asMinutes();
 
-      var retraso = horaEntrada - entrada;
+      var calculoEntrada = horaEntradaBH - entradaBH;
+      var calculoSalida = salidaBH - horaSalida;
 
-      console.log("Resultado retraso ", retraso);
+      var total = 0;
 
-      if (retraso < 0) {
-        retraso = retraso * 2;
-        return this.handleNegative(retraso);
+      if (calculoEntrada > 0) {
+        total = total + calculoEntrada;
+      }
+
+      if (calculoSalida > 0) {
+        total = total + calculoSalida;
+      }
+
+      if (total === 0) {
+        return null;
       } else {
-        retraso = "";
-        return retraso;
+        return this.handleNegative(total);
+      }
+    },
+    calcularRetraso(entrada, horaEntrada, salida, horaSalida) {
+      var entradaBH = moment.duration(entrada, "HH:mm").asMinutes();
+      var horaEntradaBH = moment.duration(horaEntrada, "HH:mm").asMinutes();
+      var salidaBH = moment.duration(salida, "HH:mm").asMinutes();
+      var horaSalida = moment.duration(horaSalida, "HH:mm").asMinutes();
+
+      var calculoEntrada = horaEntradaBH - entradaBH;
+      var calculoSalida = salidaBH - horaSalida;
+
+      var total = 0;
+
+      if (calculoEntrada < 0) {
+        total = total + calculoEntrada;
+      }
+
+      if (calculoSalida < 0) {
+        total = total + calculoSalida;
+      }
+
+      if (total === 0) {
+        return null;
+      } else {
+        return this.handleNegative(total);
       }
     },
     aplicarEstilo(entrada, salida) {

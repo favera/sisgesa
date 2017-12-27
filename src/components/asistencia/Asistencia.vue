@@ -94,6 +94,10 @@ export default {
               this.marcacion.entrada,
               this.marcacion.salida
             ),
+            retraso: this.calcularRetraso(
+              this.marcacion.empleadoId,
+              this.marcacion.entrada
+            ),
             isConfirmed: true,
             estilo: this.aplicarEstilo(
               this.marcacion.entrada,
@@ -128,6 +132,10 @@ export default {
               this.marcacion.entrada,
               this.marcacion.salida
             ),
+            retraso: this.calcularRetraso(
+              this.marcacion.empleadoId,
+              this.marcacion.entrada
+            ),
             isConfirmed: true,
             estilo: this.aplicarEstilo(
               this.marcacion.entrada,
@@ -140,6 +148,62 @@ export default {
             this.cancelar();
           })
           .catch(e => console.log(e));
+      }
+    },
+    calcularRetraso(empleadoId, entrada) {
+      var horaEntrada;
+      this.empleados.filter(element => {
+        if (element.id === empleadoId) {
+          horaEntrada = moment
+            .duration(element.sucursal.horarioEntrada, "HH:mm")
+            .asMinutes();
+          console.log("HORARIO ENTRADA FUNCIONARIO", horaEntrada);
+        }
+      });
+      var entrada = moment
+        .utc(entrada)
+        .local()
+        .format("HH:mm");
+      console.log("Entrada", entrada);
+      var retraso = horaEntrada - moment.duration(entrada, "HH:mm").asMinutes();
+
+      console.log("Resultado retraso ", retraso);
+
+      if (retraso < 0) {
+        retraso = retraso * 2;
+        return this.handleNegative(retraso);
+      } else {
+        retraso = null;
+        return retraso;
+      }
+    },
+    handleNegative(mins) {
+      var h, m;
+      if (mins >= 24 * 60) {
+        throw new RangeError(
+          "Valid input should be greater than or equal to 0 and less than 1440."
+        );
+      }
+      if (mins < 0) {
+        mins = mins * -1;
+        h = Math.floor(mins / 60);
+        m = mins % 60;
+        return (
+          "-" +
+          moment
+            .utc()
+            .hours(h)
+            .minutes(m)
+            .format("HH:mm")
+        );
+      } else {
+        h = Math.floor(mins / 60);
+        m = mins % 60;
+        return moment
+          .utc()
+          .hours(h)
+          .minutes(m)
+          .format("HH:mm");
       }
     },
     aplicarEstilo(entrada, salida) {
@@ -251,7 +315,7 @@ export default {
     },
     obtenerFuncionario() {
       axios
-        .get(url + "/empleados")
+        .get(url + "/empleados?_expand=sucursal")
         .then(response => {
           console.log(response);
           this.empleados = response.data;

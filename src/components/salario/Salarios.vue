@@ -63,10 +63,11 @@
                             <th>Funcionario</th>
                             <th>Carga Laboral del Mes</th>
                             <th>Horas Trabajadas</th>
-                            <th>Horas Extras</th>
+                            <th>Minutos de Retraso</th>
+                            <!-- <th>Horas Extras</th> -->
                             <!-- <th>Horas Extras Nocturnas</th> -->
                             <th>Salario Base</th>
-                            <th>Hora Extra</th>
+                            <th>Descuentos</th>
                             <th>Valor Ausencias</th>
                             <th>Salario Neto</th>
 
