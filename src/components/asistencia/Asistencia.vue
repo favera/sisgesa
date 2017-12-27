@@ -191,7 +191,7 @@ export default {
         .format("HH:mm");
 
       var retrasoSalida =
-        horaSalida - moment.duration(salida, "HH:mm").asMinutes();
+        moment.duration(salida, "HH:mm").asMinutes() - horaSalida;
 
       var total = 0;
 
@@ -238,7 +238,7 @@ export default {
         .format("HH:mm");
 
       var bancoHoraSalida =
-        horaSalida - moment.duration(salida, "HH:mm").asMinutes();
+        moment.duration(salida, "HH:mm").asMinutes() - horaSalida;
 
       var total = 0;
 
