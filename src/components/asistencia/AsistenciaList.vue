@@ -51,15 +51,15 @@
 
                         </div>
 
-                        <div class="field">
+                        <!-- <div class="field">
                             <el-date-picker v-model="searchDateStart" type="date" placeholder="Seleccionar fecha" format="dd/MM/yyyy">
                             </el-date-picker>
-                        </div>
+                        </div> -->
 
-                        <div class="field">
+                        <!-- <div class="field">
                             <el-date-picker v-model="searchDateEnd" type="date" placeholder="Seleccionar fecha" format="dd/MM/yyyy" >
                             </el-date-picker>
-                        </div>
+                        </div> -->
 
                         <div class="field" @click="obtenerDatos">
                             <button class="ui teal button">Listar</button>
@@ -304,7 +304,7 @@ export default {
         }
       )
         .then(() => {
-          this.eliminarAsistencia(id, estado);
+          this.eliminarAsistencia(id);
           this.$message({
             type: "success",
             message: "Delete completed"

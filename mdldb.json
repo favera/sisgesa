@@ -725,26 +725,12 @@
   "marcaciones": [
     {
       "fecha": "01/11/2017",
-      "empleadoId": 1,
-      "entrada": "6:56",
-      "salida": "16:18",
-      "horasTrabajadas": "09:22",
-      "horasExtras": "00:22",
-      "bancoHora": "00:04",
-      "isConfirmed": true,
-      "estilo": {
-        "ausente": false,
-        "incompleto": false
-      },
-      "id": 1
-    },
-    {
-      "fecha": "01/11/2017",
       "empleadoId": 2,
-      "entrada": "6:57",
+      "entrada": "06:57",
       "salida": "16:29",
       "horasTrabajadas": "09:32",
       "horasExtras": "00:02",
+      "retraso": "-00:01",
       "bancoHora": "00:03",
       "isConfirmed": true,
       "estilo": {
@@ -1671,25 +1657,27 @@
     {
       "fecha": "02/11/2017",
       "empleadoId": 2,
-      "entrada": "7:03",
-      "salida": null,
-      "horasTrabajadas": "00:00",
-      "horasExtras": "-09:30",
+      "entrada": "07:03",
+      "salida": "16:29",
+      "horasTrabajadas": "09:26",
+      "horasExtras": "-00:04",
+      "retraso": "-00:04",
       "bancoHora": null,
       "isConfirmed": true,
       "estilo": {
         "ausente": false,
-        "incompleto": true
+        "incompleto": false
       },
       "id": 62
     },
     {
       "fecha": "02/11/2017",
       "empleadoId": 3,
-      "entrada": "6:05",
+      "entrada": "06:05",
       "salida": "15:33",
       "horasTrabajadas": "09:28",
       "horasExtras": "-00:02",
+      "retraso": "-00:05",
       "bancoHora": "00:03",
       "isConfirmed": true,
       "estilo": {
