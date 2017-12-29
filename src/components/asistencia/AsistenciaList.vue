@@ -286,7 +286,7 @@ export default {
       this.datosMarcaciones.length = 0;
     },
     nuevaAsistencia() {
-      this.$router.push("/nuevaAsistencia");
+      this.$router.push({ name: "incluirAsistencia" });
     },
     llamarFuncionarios() {
       axios.get(url + "/empleados?_expand=sucursal").then(response => {
