@@ -63,8 +63,8 @@
                             <th>Funcionario</th>
                             <th>Carga Laboral del Mes</th>
                             <th>Horas Trabajadas</th>
-                            <th>Minutos de Retraso</th>
-                            <!-- <th>Horas Extras</th> -->
+                            <th>Horas Extras</th>
+                            <th>Horas Extras en Minutos</th>
                             <!-- <th>Horas Extras Nocturnas</th> -->
                             <th>Salario Base</th>
                             <th>Descuentos</th>
@@ -81,6 +81,7 @@
                             <td>{{resultado.hmformat }}</td>
                             <td>{{resultado.htformat}}</td>
                             <td>{{resultado.heformat}}</td>
+                            <td>{{resultado.horasExtras}}</td>
                             <!-- <td>{{resultado.horasExtrasNocturnas}}</td> -->
                             <td>{{resultado.salarioBase}} {{resultado.moneda}}</td>
                             <td>{{resultado.valorHoraExtra}} {{resultado.moneda}}</td>
@@ -343,7 +344,7 @@ export default {
 
             if (marcacionEmpleado.valorHoraExtra < 0) {
               marcacionEmpleado.valorHoraExtra =
-                marcacionEmpleado.valorHoraExtra * 2;
+                marcacionEmpleado.valorHoraExtra * 1;
             } else {
               marcacionEmpleado.valorHoraExtra =
                 marcacionEmpleado.valorHoraExtra +

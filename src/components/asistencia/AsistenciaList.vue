@@ -121,9 +121,9 @@
                             <th>Marcacion Entrada</th>
                             <th>Marcacion Salida</th>
                             <th>Horas Trabajadas</th>
-                            <th>Banco de Horas</th>
-                            <th>Horas Faltantes</th>
                             <!-- <th>Banco de Horas</th> -->
+                            <!-- <th>Horas Faltantes</th> -->
+                            <th>Horas Extras</th>
                             <!-- <th>Observacion</th> -->
                             <th>Opciones</th>
                         </tr>
@@ -135,9 +135,9 @@
                             <td>{{(marcacion.entrada || "--") + " hs"}}</td>
                             <td>{{(marcacion.salida || "--") + " hs"}}</td>
                             <td>{{marcacion.horasTrabajadas + " hs"}}</td>
-                            <td>{{(marcacion.bancoHora || "--") + " hs"}} </td>
-                            <td>{{(marcacion.retraso || "--" )+ " hs"}}</td>
-                            <!-- <td>{{marcacion.horasExtras + " hs"}} </td> -->
+                            <!-- <td>{{(marcacion.bancoHora || "--") + " hs"}} </td> -->
+                            <!-- <td>{{(marcacion.retraso || "--" )+ " hs"}}</td> -->
+                            <td>{{marcacion.horasExtras + " hs"}} </td>
                             <td>
                                 <i @click="guardarPaginacion(marcacion.id)" class="edit row icon"></i>
                                 <i @click="confirm(marcacion.id)" class="trash icon"></i>
