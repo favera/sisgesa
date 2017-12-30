@@ -154,7 +154,7 @@
                           <th></th>
                           <th></th>
                           <th></th>
-                          <th>{{totalHoraExtra}} Minutos</th>
+                          <th>Banco de Horas: {{totalBancoHora}} Minutos Descuentos: {{totalRetraso}} </th>
                           <th></th>
                            
                         </tr>
@@ -184,6 +184,7 @@ export default {
   data() {
     return {
       datosMarcaciones: [],
+      listado: [],
       marcaciones: [],
       preDatos: [],
       ausente: false,
@@ -243,6 +244,8 @@ export default {
     limpiarDatos() {
       this.json_data.length = 0;
       this.nombreBusqueda = null;
+      this.totalBancoHora = 0;
+      this.totalRetraso = 0;
     },
     cancelarArchivo() {
       this.datosMarcaciones.length = 0;
@@ -654,15 +657,23 @@ export default {
           .then(response => {
             this.marcaciones = response.data;
             Array.from(this.marcaciones).forEach(item => {
-              this.totalBancoHora =
-                this.totalBancoHora +
-                moment.duration(item.bancoHora, "HH:mm").asMinutes();
-              this.totalRetraso =
-                this.totalRetraso +
-                moment.duration(item.retraso, "HH:mm").asMinutes();
-              this.totalHoraExtra =
-                this.totalHoraExtra +
-                moment.duration(item.horasExtras, "HH:mm").asMinutes();
+              console.log("Horas Negativas", JSON.stringify(item.horasExtras));
+              if (moment.duration(item.horasExtras) < 0) {
+                this.totalRetraso =
+                  this.totalRetraso +
+                  moment.duration(item.horasExtras, "HH:mm").asMinutes();
+              } else {
+                this.totalBancoHora =
+                  this.totalBancoHora +
+                  moment.duration(item.horasExtras, "HH:mm").asMinutes();
+              }
+
+              // this.totalRetraso =
+              //   this.totalRetraso +
+              //   moment.duration(item.retraso, "HH:mm").asMinutes();
+              // this.totalHoraExtra =
+              //   this.totalHoraExtra +
+              //   moment.duration(item.horasExtras, "HH:mm").asMinutes();
               var informe = {
                 funcionario: null,
                 fecha: null,
@@ -672,6 +683,34 @@ export default {
                 bancoHora: null,
                 retraso: null
               };
+
+              var listado = {};
+              listado.fecha = item.fecha;
+              listado.empleadoId = item.empleadoId;
+              listado.salida = item.salida;
+              listado.horasTrabajadas = item.horasTrabajadas;
+              listado.horasExtras = item.horasExtras;
+              listado.retraso = item.retraso;
+              listado.bancoHora = item.bancoHora;
+              listado.isConfirmed = item.isConfirmed;
+              listado.estilo = item.estilo;
+              listado.empleadoNombre = item.empleadoNombre;
+
+              if (item.horasExtras > 0) {
+                listado.bancoHoras = item.horasExtras;
+                this.totalBancoHora =
+                  this.totalBancoHora +
+                  moment.duration(item.horasExtras, "HH:mm").asMinutes();
+              } else {
+                if (item.horasExtras < 0) {
+                  listado.descuentos = item.horasExtras;
+                  this.totalRetraso =
+                    this.totalRetraso +
+                    moment.duration(item.horasExtras, "HH:mm").asMinutes();
+                }
+              }
+              this.listado.push(listado);
+
               console.log("item array" + JSON.stringify(item));
               informe.funcionario = item.empleado.nombre;
               informe.fecha = item.fecha;
