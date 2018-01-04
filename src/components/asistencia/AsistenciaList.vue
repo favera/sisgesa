@@ -121,8 +121,9 @@
                             <th>Marcacion Entrada</th>
                             <th>Marcacion Salida</th>
                             <th>Horas Trabajadas</th>
-                            <th>Retraso</th>
                             <th>Banco de Horas</th>
+                            <th>Horas Faltantes</th>
+                            <!-- <th>Banco de Horas</th> -->
                             <!-- <th>Observacion</th> -->
                             <th>Opciones</th>
                         </tr>
@@ -134,8 +135,9 @@
                             <td>{{(marcacion.entrada || "--") + " hs"}}</td>
                             <td>{{(marcacion.salida || "--") + " hs"}}</td>
                             <td>{{marcacion.horasTrabajadas + " hs"}}</td>
-                            <td>{{marcacion.retraso + " hs"}}</td>
-                            <td>{{marcacion.horasExtras + " hs"}} </td>
+                            <td>{{(marcacion.bancoHora || "--") + " hs"}} </td>
+                            <td>{{(marcacion.retraso || "--" )+ " hs"}}</td>
+                            <!-- <td>{{marcacion.horasExtras + " hs"}} </td> -->
                             <td>
                                 <i @click="guardarPaginacion(marcacion.id)" class="edit row icon"></i>
                                 <i @click="confirm(marcacion.id)" class="trash icon"></i>
@@ -146,8 +148,19 @@
                     </tbody>
 
                     <tfoot v-if="pageOne.totalItems > 0">
+                        <tr v-show="totalRetraso">
+                          <th></th>
+                          <th></th>
+                          <th></th>
+                          <th></th>
+                          <th></th>
+                          <th>{{totalBancoHora}} Minutos</th>
+                          <th>{{totalRetraso}} Minutos</th>
+                          <th></th>
+                           
+                        </tr>
                         <tr>
-                            <th colspan="8">
+                           <th colspan="8">
                                 <app-pagination :current-page="pageOne.currentPage" :total-items="pageOne.totalItems" :items-per-page="pageOne.itemsPerPage" @page-changed="pageOneChanged">
                                 </app-pagination>
                             </th>
@@ -183,6 +196,8 @@ export default {
       searchDateStart: "",
       searchDateEnd: "",
       ausencias: [],
+      totalBancoHora: 0,
+      totalRetraso: 0,
       pageOne: {
         currentPage: 1,
         totalItems: 0,
@@ -195,8 +210,8 @@ export default {
         entrada: "Entrada",
         salida: "Salida",
         horasTrabajadas: "Horas Trabajadas",
-        horasExtras: "Horas Extras",
-        horasExtrasMinutos: "Horas Extras en Minutos"
+        bancoHora: "Banco de Horas",
+        retraso: "Horas faltantes"
       },
       json_data: [],
       json_meta: [
@@ -319,18 +334,27 @@ export default {
           value.id,
           value.nombre,
           value.cargaLaboral,
-          value.sucursal.horarioEntrada
+          value.sucursal.horarioEntrada,
+          value.sucursal.horarioSalida
         );
       });
       this.abrirModal();
     },
-    orderData(acnro, empleadoid, nombre, cargaLaboral, horaEntrada) {
+    orderData(
+      acnro,
+      empleadoid,
+      nombre,
+      cargaLaboral,
+      horaEntrada,
+      horaSalida
+    ) {
       var modelo = {
         fecha: "",
         empleadoId: null,
         nombre: "",
         horasExtras: "",
         horaEntrada: horaEntrada,
+        horaSalida: horaSalida,
         entrada: null,
         salida: null,
         horarios: [],
@@ -453,7 +477,16 @@ export default {
                 //calculo de retraso
                 retraso: this.calcularRetraso(
                   marcacion.entrada,
-                  marcacion.horaEntrada
+                  marcacion.horaEntrada,
+                  marcacion.salida,
+                  marcacion.horaSalida
+                ),
+                //calculo de Banco de Hora
+                bancoHora: this.calculoBancoHora(
+                  marcacion.entrada,
+                  marcacion.horaEntrada,
+                  marcacion.salida,
+                  marcacion.horaSalida
                 ),
                 isConfirmed: true,
                 estilo: this.aplicarEstilo(marcacion.entrada, marcacion.salida)
@@ -475,22 +508,54 @@ export default {
       this.applyCss = true;
       console.log("after async");
     },
-    calcularRetraso(entrada, horaEntrada) {
-      var entrada = moment.duration(entrada, "HH:mm").asMinutes();
-      console.log("Entrada ", entrada);
-      var horaEntrada = moment.duration(horaEntrada, "HH:mm").asMinutes();
-      console.log("Hora Entrada ", horaEntrada);
+    calculoBancoHora(entrada, horaEntrada, salida, horaSalida) {
+      var entradaBH = moment.duration(entrada, "HH:mm").asMinutes();
+      var horaEntradaBH = moment.duration(horaEntrada, "HH:mm").asMinutes();
+      var salidaBH = moment.duration(salida, "HH:mm").asMinutes();
+      var horaSalida = moment.duration(horaSalida, "HH:mm").asMinutes();
 
-      var retraso = horaEntrada - entrada;
+      var calculoEntrada = horaEntradaBH - entradaBH;
+      var calculoSalida = salidaBH - horaSalida;
 
-      console.log("Resultado retraso ", retraso);
+      var total = 0;
 
-      if (retraso < 0) {
-        retraso = retraso * 2;
-        return this.handleNegative(retraso);
+      if (calculoEntrada > 0) {
+        total = total + calculoEntrada;
+      }
+
+      if (calculoSalida > 0) {
+        total = total + calculoSalida;
+      }
+
+      if (total === 0) {
+        return null;
       } else {
-        retraso = "";
-        return retraso;
+        return this.handleNegative(total);
+      }
+    },
+    calcularRetraso(entrada, horaEntrada, salida, horaSalida) {
+      var entradaBH = moment.duration(entrada, "HH:mm").asMinutes();
+      var horaEntradaBH = moment.duration(horaEntrada, "HH:mm").asMinutes();
+      var salidaBH = moment.duration(salida, "HH:mm").asMinutes();
+      var horaSalida = moment.duration(horaSalida, "HH:mm").asMinutes();
+
+      var calculoEntrada = horaEntradaBH - entradaBH;
+      var calculoSalida = salidaBH - horaSalida;
+
+      var total = 0;
+
+      if (calculoEntrada < 0) {
+        total = total + calculoEntrada;
+      }
+
+      if (calculoSalida < 0) {
+        total = total + calculoSalida;
+      }
+
+      if (total === 0) {
+        return null;
+      } else {
+        return this.handleNegative(total);
       }
     },
     aplicarEstilo(entrada, salida) {
@@ -581,19 +646,27 @@ export default {
           }
         }
         console.log(query);
+        this.totalBancoHora = 0;
+        this.totalRetraso = 0;
         axios
           .get(query + "&_expand=empleado")
           .then(response => {
             this.marcaciones = response.data;
             Array.from(this.marcaciones).forEach(item => {
+              this.totalBancoHora =
+                this.totalBancoHora +
+                moment.duration(item.bancoHora, "HH:mm").asMinutes();
+              this.totalRetraso =
+                this.totalRetraso +
+                moment.duration(item.retraso, "HH:mm").asMinutes();
               var informe = {
                 funcionario: null,
                 fecha: null,
                 entrada: null,
                 salida: null,
-                horasExtras: null,
                 horasTrabajadas: null,
-                horasExtrasMinutos: null
+                bancoHora: null,
+                retraso: null
               };
               console.log("item array" + JSON.stringify(item));
               informe.funcionario = item.empleado.nombre;
@@ -601,10 +674,10 @@ export default {
               informe.entrada = item.entrada;
               informe.salida = item.salida;
               informe.horasTrabajadas = item.horasTrabajadas;
-              informe.horasExtras = item.horasExtras;
-              informe.horasExtrasMinutos = moment
-                .duration(item.horasExtras, "HH:mm")
-                .asMinutes();
+              informe.bancoHora = item.bancoHora || "";
+
+              informe.retraso = item.retraso || "";
+              console.log("Banco Hora ", item.bancoHora);
               this.json_data.push(informe);
               console.log(
                 JSON.stringify("JSON DATA" + JSON.stringify(this.json_data))
