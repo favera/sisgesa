@@ -1,8 +1,12 @@
+
 import Vue from 'vue'
 import JsonExcel from 'vue-json-excel';
 import VueRouter from 'vue-router'
 import App from './App.vue'
 import { DatePicker, TimePicker, TimeSelect, MessageBox, Message, Notification } from 'element-ui'
+
+var VueFire = require("vuefire");
+var Firebase = require("firebase");
 
 import '../semantic/dist/semantic.css'
 import '../semantic/dist/semantic.js'
@@ -21,6 +25,7 @@ import moment from 'moment'
 import axios from 'axios'
 
 Vue.use(VueRouter);
+Vue.use(VueFire);
 Vue.use(vueXlsxTable, { rABS: false });
 Vue.use(TimePicker);
 Vue.use(TimeSelect);

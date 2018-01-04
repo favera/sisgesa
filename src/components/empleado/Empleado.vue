@@ -13,34 +13,84 @@
                 <label for="">AC - No (Numero Identificador):</label>
                 <input type="text" v-model="empleado.acnro">
             </div>
+
             <div class="ten wide field">
+                <label for="">Numero de Cedula:</label>
+                <input type="text" v-model="empleado.nroCedula">
+            </div>
+
+            <div class="ten wide field">
+              <label for="">Fecha de Ingreso</label>
+                            <el-date-picker v-model="empleado.fechaIngreso" type="date" placeholder="Seleccionar fecha" format="dd/MM/yyyy">
+                            </el-date-picker>
+                        </div>
+            <div class="ten wide field">
+                <label for="">Sucursal:</label>
+                <select class="ui fluid dropdown"  name="sucursales" v-model="empleado.sucursal">
+                    <option disabled value="">Seleccionar Sucursal..</option>
+                    <option v-for="sucursal in sucursales" :key="sucursal['.key']" v-bind:value="sucursal.nombre">{{sucursal.nombre}}</option>
+                </select>
+            </div>
+
+            <div class="ten wide field">
+              <div class="three fields">
                 <div class="field">
-                    <label>Tipo de carga laboral</label>
-                </div>
-
-                <div class="inline fields">
-                    <div class="eight wide field">
-                        <div class="ui radio checkbox">
-                            <input type="radio" value="calculado" v-model="empleado.tipoCarga">
-                            <label>Calculado</label>
-                        </div>
-
-                        <div class="ui radio checkbox">
-                            <input type="radio" value="manual" v-model="empleado.tipoCarga">
-                            <label>Manual</label>
-                        </div>
-                    </div>
-
-                    <div class="eight wide field" v-show="empleado.tipoCarga==='calculado'">
-                        <el-time-select v-model="empleado.cargaLaboral" :picker-options="{
+                    <label>Carga laboral</label>
+                    <el-time-select v-model="empleado.cargaLaboral" :picker-options="{
                                                                                                                                                                                                                                                             start: '08:30',
                                                                                                                                                                                                                                                             step: '00:30',
                                                                                                                                                                                                                                                             end: '10:30'
                                                                                                                                                                                                                                                         }" placeholder="Selecccionar Horario">
                         </el-time-select>
-                    </div>
                 </div>
-            </div>
+                <div class="field">
+                    <label for="">Sabado medio tiempo</label>
+                    <div class="fields">
+                      <div class="field">
+                        <div class="ui radio checkbox">
+                            <input type="radio" value=true v-model="empleado.medioTiempo">
+                            <label>Si</label>
+                        </div>
+                      </div>
+
+                      <div class="field">
+                         <div class="ui radio checkbox">
+                            <input type="radio" value=false v-model="empleado.medioTiempo">
+                            <label>No</label>
+                        </div>
+                    </div>
+                      </div>
+                    </div>
+
+                    <div class="field">
+                      <label for="">Pago de Hora Extra:</label>
+                      <div class="fields">
+                        <div class="field">
+                          <div class="ui radio checkbox">
+                            <input type="radio" value="bancoHora" v-model="empleado.tipoHoraExtra">
+                            <label for="">Banco de Hora</label>
+                          </div>
+                        </div>
+
+                         <div class="field">
+                          <div class="ui radio checkbox">
+                            <input type="radio" value="efectivo" v-model="empleado.tipoHoraExtra">
+                            <label for="">Efectivo</label>
+                          </div>
+                        </div>
+                      </div>
+
+                     
+                    </div>
+                  
+
+                </div>
+              </div>
+                
+
+              
+
+            
 
             <div class="two fields">
                 <div class="five wide field">
@@ -58,14 +108,40 @@
                 </div>
 
             </div>
-           
+
             <div class="ten wide field">
-                <label for="">Sucursal:</label>
-                <select v-model="empleado.sucursalId">
-                    <option disabled value="">Seleccionar Sucursal..</option>
-                    <option v-for="sucursal in sucursales"  v-bind:value="sucursal.id" :key="sucursal.id" :selected="sucursal.id === empleado.sucursalId ? true : false" >{{sucursal.nombre}}</option>
-                </select>
+
+              <div class="field">
+                IPS sobre:
+              </div>
+
+              <div class="fields">
+
+                <div class="field">
+                  <div class="ui radio checkbox">
+                    <input type="radio" value="salario" v-model="empleado.ips">
+                    <label>Salario</label>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <div class="ui radio checkbox">
+                    <input type="radio" value="salarioMinimo" v-model="empleado.ips">
+                    <label>Salario Minimo</label>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <div class="ui radio checkbox">
+                    <input type="radio" value="noAplica" v-model="empleado.ips">
+                    <label>No aplica</label>
+                  </div>
+                </div>
+
+              </div>
+
             </div>
+
             <div class="ui teal button" @click="guardarEmpleado">Guardar</div>
             <div class="ui button" @click="cancelar">Cancelar</div>
         </div>
@@ -74,8 +150,14 @@
 <script>
 import { VMoney } from "v-money";
 import axios from "axios";
+import moment from "moment";
 import { eventBus } from "./../../main";
 import { url } from "./../.././config/backend";
+
+import { db } from "./../.././config/firebase";
+
+let funcionariosRef = db.ref("/funcionarios");
+let sucursalesRef = db.ref("/sucursales");
 
 export default {
   data() {
@@ -83,11 +165,15 @@ export default {
       empleado: {
         nombre: "",
         acnro: "",
-        tipoCarga: "calculado",
+        nroCedula: null,
+        fechaIngreso: "",
+        medioTiempo: false,
+        tipoHoraExtra: "bancoHora",
         cargaLaboral: "",
         salario: "",
         moneda: "",
-        sucursalId: ""
+        ips: "salario",
+        sucursal: ""
       },
       money: {
         decimal: ",",
@@ -107,7 +193,17 @@ export default {
       return checkValor / 30 / 8 / 60;
     },
     guardarEmpleado() {
-      if (typeof this.$route.params.id !== "undefined") {
+      this.empleado.fechaIngreso = moment(
+        this.empleado.fechaIngreso,
+        "DD/MM/YYYY"
+      )
+        .format("L")
+        .toString();
+
+      funcionariosRef.push(this.empleado).then(alert("guardo"));
+
+      /*#############*/
+      /*if (typeof this.$route.params.id !== "undefined") {
         axios
           .put(url + "/empleados/" + this.$route.params.id, {
             nombre: this.empleado.nombre,
@@ -143,7 +239,7 @@ export default {
             console.log(response);
           })
           .catch(error => console.log(error));
-      }
+      }*/
     },
     obtenerEmpleado() {
       if (typeof this.$route.params.id != "undefined") {
@@ -184,9 +280,13 @@ export default {
     axios.get(url + "/sucursals").then(response => {
       this.sucursales = response.data;
     });
+    $(this.$el)
+      .find(".ui.fluid.dropdown")
+      .dropdown();
   },
   created() {
     this.obtenerEmpleado();
+    this.$bindAsArray("sucursales", sucursalesRef);
   },
   watch: {
     $route: "obtenerEmpleado"

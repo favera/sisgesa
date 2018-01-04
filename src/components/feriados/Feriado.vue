@@ -43,7 +43,7 @@
         <label for="">Seleccionar Sucursales afectadas</label>
         <select name="sucursales" multiple="" class="ui fluid dropdown" v-model="feriado.sucursalesAfectadas" >
             <option disabled value="">Seleccionar Sucursal..</option>
-            <option v-for="sucursal in sucursales" :key="sucursal.id" v-bind:value="sucursal.nombre">{{sucursal.nombre}}</option>
+            <option v-for="sucursal in sucursales" :key="sucursal['.key']" v-bind:value="sucursal.nombre">{{sucursal.nombre}}</option>
         </select>
     </div>
 
@@ -59,70 +59,92 @@
 import moment from "moment";
 import axios from "axios";
 import { url } from "./../.././config/backend";
-
+import { db } from "./../.././config/firebase";
+let sucursalesRef = db.ref("/sucursales");
+let feriadoRef = db.ref("/feriados");
 export default {
   data() {
     return {
       feriado: {
         fechaUtc: "",
+        fecha: "",
         tipoFeriado: "completo",
         horasUtc: "",
         sucursalesAfectadas: []
       },
-      sucursales: []
+      sucursales: [],
+      feriados: []
     };
   },
   methods: {
     obtenerSucursales() {
-      axios.get(url + "/sucursals").then(response => {
-        this.sucursales = response.data;
-        console.log(this.sucursales);
-      });
+      // axios.get(url + "/sucursals").then(response => {
+      //   this.sucursales = response.data;
+      //   console.log(this.sucursales);
+      // });
     },
     obtenerFeriado() {
       console.log(this.$route.params.id);
 
-      if (typeof this.$route.params.id != "undefined") {
-        axios.get(url + "/feriados/" + this.$route.params.id).then(response => {
-          console.log(response.data);
-          this.feriado.fechaUtc = response.data.fechaUtc;
-          this.feriado.tipoFeriado = response.data.tipoFeriado;
-          this.feriado.horasUtc = response.data.horasUtc;
-          this.feriado.sucursalesAfectadas = response.data.sucursalesAfectadas;
+      if (typeof this.$route.params.id !== "undefined") {
+        console.log(feriadoRef.child(this.$route.params.id));
+        feriadoRef.child(this.$route.params.id).once("value", snapshot => {
+          console.log(snapshot.val());
+          this.feriado.fechaUtc = snapshot.val().fechaUtc;
+          this.feriado.tipoFeriado = snapshot.val().tipoFeriado;
+          this.feriado.sucursalesAfectadas = snapshot.val().sucursalesAfectadas;
         });
       }
     },
     guardarFeriado() {
-      var horaResult;
-      var horaResultUtc;
-      if (this.feriado.tipoFeriado === "parcial") {
-        horaResult = moment
-          .utc(this.feriado.horasUtc)
-          .local()
-          .format("HH:mm");
-        horaResultUtc = this.feriado.horasUtc;
+      if (typeof this.$route.params.id !== null) {
+        var horaResult;
+        var horaResultUtc;
+        if (this.feriado.tipoFeriado === "parcial") {
+          horaResult = moment
+            .utc(this.feriado.horasUtc)
+            .local()
+            .format("HH:mm");
+          horaResultUtc = this.feriado.horasUtc.toString();
+        } else {
+          horaResult = null;
+          horaResultUtc = null;
+        }
+
+        this.feriado.fecha = moment(this.feriado.fechaUtc, "DD/MM/YYYY")
+          .format("L")
+          .toString();
+        this.feriado.fechaUtc = this.feriado.fechaUtc.toString();
+
+        feriadoRef
+          .child(this.$route.params.id)
+          .update(this.feriado)
+          .then(response => {
+            this.success();
+            this.cancelar();
+            console.log(response);
+          });
       } else {
-        horaResult = null;
-        horaResultUtc = null;
+        var horaResult;
+        var horaResultUtc;
+        if (this.feriado.tipoFeriado === "parcial") {
+          horaResult = moment
+            .utc(this.feriado.horasUtc)
+            .local()
+            .format("HH:mm");
+          horaResultUtc = this.feriado.horasUtc.toString();
+        } else {
+          horaResult = null;
+          horaResultUtc = null;
+        }
+
+        this.feriado.fecha = moment(this.feriado.fechaUtc, "DD/MM/YYYY")
+          .format("L")
+          .toString();
+        this.feriado.fechaUtc = this.feriado.fechaUtc.toString();
+        feriadosRef.push(this.feriado).then(this.success(), this.cancelar());
+        console.log(JSON.stringify(this.sucursalesAfectadas));
       }
-      axios
-        .post(url + "/feriados", {
-          fecha: moment(this.feriado.fechaUtc, "DD/MM/YYYY").format("L"),
-          fechaUtc: this.feriado.fechaUtc,
-          tipoFeriado: this.feriado.tipoFeriado,
-          horas: horaResult,
-          horasUtc: horaResultUtc,
-          sucursalesAfectadas: this.feriado.sucursalesAfectadas
-        })
-        .then(response => {
-          console.log(response);
-          this.success();
-          this.cancelar();
-        })
-        .catch(e => {
-          console.log(e);
-          this.fail();
-        });
     },
     cancelar() {
       this.$router.push({ name: "listadoFeriado" });
@@ -142,6 +164,7 @@ export default {
     }
   },
   mounted() {
+    this.$bindAsArray("sucursales", sucursalesRef);
     this.obtenerSucursales();
     $(this.$el)
       .find(".ui.fluid.dropdown")

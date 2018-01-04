@@ -8,7 +8,7 @@
     
                     <div class="ui icon input">
                         <input type="text" placeholder="Buscar Feriado...">
-                        <i class="inverted teal circular search link icon"></i>
+                        <i class="inverted teal circular search link icon" @click="listar"></i>
                     </div>
     
                 </div>
@@ -42,19 +42,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="feriado in feriados" :key="feriado.id">
+                    <tr v-for="feriado in feriados">
                         <td> 
-                            <div v-for="sucursal in feriado.sucursalesAfectadas" :key="sucursal.id" class="ui olive label">{{sucursal}}</div>
+                            <div v-for="sucursal in feriado.sucursalesAfectadas" class="ui olive label">{{sucursal}}</div>
                         </td>
                         <td>{{feriado.fecha}}</td>
                         <td>{{feriado.tipoFeriado}}</td>
                         <td>{{feriado.horas}}</td>
                         <td>
-                            <router-link :to="{name: 'editarFeriado', params: { id: feriado.id}}">
+                            <router-link :to="{name: 'editarFeriado', params: { id: feriado['.key']}}">
                                 <i class="edit row icon"></i>
                             </router-link>
                             
-                            <i class="trash icon" @click="confirm(feriado.id)"></i>
+                            <i class="trash icon" @click="confirm(feriado['.key'])"></i>
                         </td>
                     </tr>
                   
@@ -69,35 +69,73 @@
 <script>
 import axios from "axios";
 import { url } from "./../.././config/backend";
+import { db } from "./../.././config/firebase";
+
+let sucursalRef = db.ref("/sucursales");
+let feriadoRef = db.ref("/feriados");
 
 export default {
   data() {
     return {
       feriados: [],
-      sucursales: []
+      sucursales: [],
+      sucursalesNombre: []
     };
   },
   methods: {
     incluirFeriado() {
       this.$router.push({ name: "incluirFeriado" });
     },
-    obtenerFeriados() {
-      axios
-        .get(url + "/feriados")
-        .then(response => {
-          this.feriados = response.data;
-          console.log(this.feriados);
-        })
-        .catch(e => {
-          console.log(e);
+    listar() {
+      Array.from(this.feriados).forEach(item => {
+        console.log(JSON.stringify(item[".key"]));
+        var test = feriadoRef.child(item[".key"]).child("sucursalesAfectadas");
+        console.log("Variable Test", test);
+        var sucursalesNombre = [];
+        test.on("child_added", snap => {
+          sucursalRef.child(snap.key).once("value", sucursal => {
+            console.log("Test" + JSON.stringify(sucursal.val()));
+
+            sucursalesNombre.push(sucursal.val().nombre);
+          });
+          console.log("Feriadosooo", JSON.stringify(this.sucursalesNombre));
         });
+        console.log("item a guardar", JSON.stringify(item));
+        this.feriados.sucursalesNombre = sucursalesNombre;
+      });
+    },
+    confirm(id) {
+      this.$confirm(
+        "El registro sera eliminado permanentemente. Desea Continuar?",
+        "Atencion!",
+        {
+          confirmButtonText: "OK",
+          cancelButtonText: "Cancelar",
+          type: "warning"
+        }
+      )
+        .then(() => {
+          this.eliminarFeriado(id);
+          this.$message({
+            type: "success",
+            message: "Registro Eliminado"
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "Proceso Cancelado"
+          });
+        });
+    },
+    eliminarFeriado(id) {
+      var index = this.sucursales.findIndex(i => i.id === id);
+      db.ref("/feriados/" + id).remove();
     }
   },
-  mounted() {
-    this.obtenerFeriados();
-    axios.get(url + "/sucursals").then(response => {
-      this.sucursales = response.data;
-    });
+  created() {
+    this.$bindAsArray("sucursales", sucursalRef);
+    this.$bindAsArray("feriados", feriadoRef);
   }
 };
 </script>

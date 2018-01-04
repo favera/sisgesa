@@ -54,6 +54,8 @@
 import axios from "axios";
 import moment from "moment";
 import { url } from "./../.././config/backend";
+import { db } from "./../.././config/firebase";
+let sucursalRef = db.ref("sucursales");
 
 export default {
   data() {
@@ -64,76 +66,84 @@ export default {
         horarioSalidaUtc: null,
         horaLaboral: null,
         telefono: null
+      },
+      firebase: {
+        sucursal: sucursalRef
       }
     };
   },
   methods: {
     guardarSucursal() {
-      if (typeof this.$route.params.id !== "undefined") {
-        axios
-          .put(url + "/sucursals/" + this.$route.params.id, {
+      if (typeof this.$route.params.id !== null) {
+        sucursalRef
+          .child(this.$route.params.id)
+          .update({
             nombre: this.sucursal.nombre,
             horarioEntrada: moment
               .utc(this.sucursal.horarioEntradaUtc)
               .local()
               .format("HH:mm"),
-            horarioEntradaUtc: this.sucursal.horarioEntradaUtc,
             horarioSalida: moment
               .utc(this.sucursal.horarioSalidaUtc)
               .local()
               .format("HH:mm"),
-            horarioSalidaUtc: this.sucursal.horarioSalidaUtc,
+
             horaLaboral: moment(this.sucursal.horarioSalidaUtc).diff(
               this.sucursal.horarioEntradaUtc,
               "minutes"
             ),
+            horarioEntradaUtc: this.sucursal.horarioEntradaUtc.toString(),
+            horarioSalidaUtc: this.sucursal.horarioSalidaUtc.toString(),
             telefono: this.sucursal.telefono
           })
           .then(response => {
             this.success();
             this.cancelar();
             console.log(response);
-          })
-          .catch(e => console.log(e));
+          });
       } else {
-        axios
-          .post(url + "/sucursals", {
+        db
+          .ref("sucursales")
+          .push({
             nombre: this.sucursal.nombre,
             horarioEntrada: moment
               .utc(this.sucursal.horarioEntradaUtc)
               .local()
               .format("HH:mm"),
-            horarioEntradaUtc: this.sucursal.horarioEntradaUtc,
             horarioSalida: moment
               .utc(this.sucursal.horarioSalidaUtc)
               .local()
               .format("HH:mm"),
-            horarioSalidaUtc: this.sucursal.horarioSalidaUtc,
+
             horaLaboral: moment(this.sucursal.horarioSalidaUtc).diff(
               this.sucursal.horarioEntradaUtc,
               "minutes"
             ),
+            horarioEntradaUtc: this.sucursal.horarioEntradaUtc.toString(),
+            horarioSalidaUtc: this.sucursal.horarioSalidaUtc.toString(),
             telefono: this.sucursal.telefono
           })
           .then(response => {
             this.success();
             this.cancelar();
             console.log(response);
-          })
-          .catch(e => console.log(e));
+          });
       }
     },
     obtenerSucursal() {
       if (typeof this.$route.params.id !== "undefined") {
-        axios
-          .get(url + "/sucursals/" + this.$route.params.id)
-          .then(response => {
-            this.sucursal.nombre = response.data.nombre;
-            this.sucursal.horarioEntradaUtc = response.data.horarioEntradaUtc;
-            this.sucursal.horarioSalidaUtc = response.data.horarioSalidaUtc;
-            this.sucursal.telefono = response.data.telefono;
-          })
-          .catch(e => console.log(e));
+        console.log(sucursalRef.child(this.$route.params.id));
+        sucursalRef.child(this.$route.params.id).once("value", snapshot => {
+          console.log(snapshot.val());
+          this.sucursal.nombre = snapshot.val().nombre;
+          this.sucursal.horarioEntradaUtc = snapshot.val().horarioEntradaUtc;
+          this.sucursal.horarioSalidaUtc = snapshot.val().horarioSalidaUtc;
+          this.sucursal.telefono = snapshot.val().telefono;
+        });
+        /*db.ref("/sucursal/" + this.$route.params.id).on("value", snapshot => {
+          console.log(snapshot.val());
+          this.sucursal.nombre = snapshot.val().nombre;
+        });*/
       }
     },
     cancelar() {
@@ -155,6 +165,7 @@ export default {
   },
   created() {
     this.obtenerSucursal();
+    //console.log(sucursalRef.child(this.$route.params.id));
   },
   watch: {
     $route: "obtenerSucursal"

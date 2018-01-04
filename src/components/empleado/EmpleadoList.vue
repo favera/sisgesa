@@ -11,6 +11,7 @@
                     </div>
 
                 </div>
+                
 
                 <div class="field">
 
@@ -18,7 +19,7 @@
                     <a class="icon item" @click="nuevoEmpleado">
                       <i class="plus icon"></i>
                     </a>
-                    <a class="icon item">
+                    <a class="icon item" @click="insertarFirebase">
                       <i class="print icon"></i>
                     </a>
                   </div>
@@ -82,12 +83,15 @@
 import axios from "axios";
 import Pagination from ".././shared/Pagination.vue";
 import { url } from "./../.././config/backend";
+import { db } from "./../.././config/firebase";
+let funcionariosRef = db.ref("/funcionarios");
 
 export default {
   props: ["page"],
   data() {
     return {
       empleados: [],
+      empleadosFirebase: [],
       pageOne: {
         currentPage: 1,
         totalItems: 0,
@@ -99,6 +103,25 @@ export default {
     appPagination: Pagination
   },
   methods: {
+    insertarFirebase() {
+      Array.from(this.empleadosFirebase).forEach(element => {
+        funcionariosRef.push({
+          activo: true,
+          acnro: element.acnro,
+          cargaLaboral: element.cargaLaboral,
+          fechaIngreso: "04/01/2018",
+          ips: "salario",
+          medioTiempo: false,
+          moneda: element.moneda,
+          nombre: element.nombre,
+          nroCedula: "1",
+          salario: element.salario,
+          salarioMinuto: element.salarioMinuto,
+          sucursal: "",
+          tipoHoraExtra: "bancoHora"
+        });
+      });
+    },
     guardarPaginacion(empleadoId) {
       var page = {};
       page.currentPage = this.pageOne.currentPage;
@@ -197,7 +220,13 @@ export default {
     }
   },
   created() {
-    this.obtenerListadoEmpleado();
+    //this.obtenerListadoEmpleado();
+    this.$bindAsArray("empleados", funcionariosRef.limitToLast(5));
+
+    axios.get(url + "/empleados").then(response => {
+      console.log(response);
+      this.empleadosFirebase = response.data;
+    });
   },
   updated() {},
   watch: {

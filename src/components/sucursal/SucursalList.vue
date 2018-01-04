@@ -43,17 +43,17 @@
                 </thead>
 
                 <tbody>
-                    <tr v-for="sucursal in sucursales" :key="sucursal.id">
+                    <tr v-for="sucursal in sucursales" :key="sucursal['.key']">
                         <td>{{sucursal.nombre }}</td>
                         <td>{{sucursal.horarioEntrada + " hs"}}</td>
                         <td>{{sucursal.horarioSalida + " hs"}}</td>
                         <td>{{sucursal.telefono}}</td>
                         <td>
-                            <router-link :to="{name: 'editarSucursal', params: {id: sucursal.id}}">
+                            <router-link :to="{name: 'editarSucursal', params: {id: sucursal['.key']}}">
                                 <i class="edit row icon"></i>
                             </router-link>
                             
-                            <i class="trash icon" @click="confirm(sucursal.id)"></i>
+                            <i class="trash icon" @click="confirm(sucursal['.key'])"></i>
                         </td>
                     </tr>
                 </tbody>
@@ -78,7 +78,8 @@
 import axios from "axios";
 import Pagination from ".././shared/Pagination.vue";
 import { url } from "./../.././config/backend";
-
+import { db } from "./../.././config/firebase";
+let sucursalesRef = db.ref("/sucursales");
 export default {
   data() {
     return {
@@ -87,6 +88,9 @@ export default {
         currentPage: 1,
         totalItems: 0,
         itemsPerPage: 11
+      },
+      firebase: {
+        //sucursales: sucursalesRef
       }
     };
   },
@@ -118,26 +122,23 @@ export default {
           });
         });
     },
-    obtenerListadoSucursales() {
-      axios
-        .get(url + "/sucursals")
-        .then(response => {
-          this.sucursales = response.data.slice(
-            0,
-            this.pageOne.itemsPerPage - 1
-          );
-          this.pageOne.totalItems = response.data.length;
-        })
-        .catch(e => {
-          console.log(e);
+    obtenerListadoSucursales(sucursal) {
+      for (let key in sucursal) {
+        this.sucursales.push({
+          horaLaboral: sucursal[key].horaLaboral,
+          horarioEntrada: sucursal[key].horarioEntrada,
+          horarioSalida: sucursal[key].horarioSalida,
+          nombre: sucursal[key].nombre,
+          telefono: sucursal[key].telefono,
+          id: key
         });
+      }
+
+      this.sucursales.reverse();
     },
     eliminarSucursal(id) {
       var index = this.sucursales.findIndex(i => i.id === id);
-      console.log(index);
-      axios
-        .delete(url + "/sucursals/" + id)
-        .then(this.sucursales.splice(index, 1));
+      db.ref("/sucursales/" + id).remove();
     },
     pageOneChanged(pageNum) {
       this.pageOne.currentPage = pageNum;
@@ -154,8 +155,8 @@ export default {
   components: {
     appPagination: Pagination
   },
-  mounted() {
-    this.obtenerListadoSucursales();
+  created() {
+    this.$bindAsArray("sucursales", sucursalesRef);
   },
   watch: {
     $route: "obtenerListadoSucursales"
