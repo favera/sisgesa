@@ -47,7 +47,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="empleado in empleados" :key="empleado.id">
+                    <tr v-for="empleado in listadoEmpleado" :key="empleado.id">
                         <td> {{empleado.nombre}}</td>
                         <td> {{empleado.acnro}}</td>
                         <td> {{empleado.tipoCarga}}</td>
@@ -68,7 +68,7 @@
                 <tfoot>
                     <tr>
                         <th colspan="7">
-                            <app-pagination :current-page="pageOne.currentPage" :total-items="pageOne.totalItems" :items-per-page="pageOne.itemsPerPage" @page-changed="pageOneChanged">
+                            <app-pagination :current-page="pageOne.currentPage" :total-items="pageOne.totalItems" :items-per-page="pageOne.itemsPerPage" @page-changed="listadoEmpleado">
                             </app-pagination>
                         </th>
                     </tr>
@@ -206,7 +206,7 @@ export default {
       }
     },
     pageOneChanged(pageNum) {
-      this.pageOne.currentPage = pageNum;
+      /*this.pageOne.currentPage = pageNum;
       axios
         .get(
           url + "/empleados?_expand=sucursal&_page=" + this.pageOne.currentPage
@@ -216,17 +216,31 @@ export default {
         })
         .catch(e => {
           console.log(e);
-        });
+        });*/
+
+      return;
     }
   },
   created() {
     //this.obtenerListadoEmpleado();
-    this.$bindAsArray("empleados", funcionariosRef.limitToLast(5));
+    this.$bindAsArray("empleados", funcionariosRef);
+
+    this.empleados = this.empleados.reverse();
 
     axios.get(url + "/empleados").then(response => {
       console.log(response);
       this.empleadosFirebase = response.data;
     });
+  },
+  computed: {
+    listadoEmpleado: function() {
+      this.pageOne.totalItems = this.empleados.length;
+
+      if (this.pageOne.itemsPerPage === 10) {
+        return this.empleados.slice(0, 10);
+      } else {
+      }
+    }
   },
   updated() {},
   watch: {

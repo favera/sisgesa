@@ -185,13 +185,9 @@ export default {
       empleado: {
         nombre: "",
         acnro: "",
-<<<<<<< HEAD
         nroCedula: null,
         fechaIngreso: "",
         medioTiempo: false,
-=======
-        tipoCarga: "calculado",
->>>>>>> 4cbd9517a4e399c3fb632073a2bc58f76b96ea0f
         tipoHoraExtra: "bancoHora",
         cargaLaboral: "",
         salario: "",
