@@ -11,7 +11,7 @@
                     </div>
 
                 </div>
-                
+
 
                 <div class="field">
 
@@ -47,7 +47,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="empleado in listadoEmpleado" :key="empleado.id">
+                    <tr v-for="empleado in empleados" :key="empleado.id">
                         <td> {{empleado.nombre}}</td>
                         <td> {{empleado.acnro}}</td>
                         <td> {{empleado.tipoCarga}}</td>
@@ -68,7 +68,7 @@
                 <tfoot>
                     <tr>
                         <th colspan="7">
-                            <app-pagination :current-page="pageOne.currentPage" :total-items="pageOne.totalItems" :items-per-page="pageOne.itemsPerPage" @page-changed="listadoEmpleado">
+                            <app-pagination :current-page="pageOne.currentPage" :total-items="pageOne.totalItems" :items-per-page="pageOne.itemsPerPage" @page-changed="pageOneChanged">
                             </app-pagination>
                         </th>
                     </tr>
@@ -92,6 +92,8 @@ export default {
     return {
       empleados: [],
       empleadosFirebase: [],
+      keyPagination: [],
+      clave: "-L20uHGEH_6EDbTP1d1U",
       pageOne: {
         currentPage: 1,
         totalItems: 0,
@@ -218,29 +220,98 @@ export default {
           console.log(e);
         });*/
 
-      return;
+      //return;
+      this.pageOne.currentPage = pageNum;
+      Array.from(this.keyPagination).forEach(element => {
+        if (element.pagina === pageNum) {
+          console.log("Clave paginacion", element.clave);
+          //this.clave = element.clave;
+          //this.empleados = funcionariosRef.limitToLast(10).endAt(element.clave);
+        }
+      });
     }
   },
   created() {
     //this.obtenerListadoEmpleado();
-    this.$bindAsArray("empleados", funcionariosRef);
+    /* this.$bindAsArray(
+      "empleados",
+      funcionariosRef
+        .orderByKey()
+        .limitToLast(10)
+        .endAt(this.clave)
+    );*/
 
-    this.empleados = this.empleados.reverse();
+    //this.empleados = this.empleados.reverse();
 
-    axios.get(url + "/empleados").then(response => {
-      console.log(response);
-      this.empleadosFirebase = response.data;
+    // axios.get(url + "/empleados").then(response => {
+    //   console.log(response);
+    //   this.empleadosFirebase = response.data;
+    // });
+    var llaves = [];
+    var paginas;
+
+    axios.get(funcionariosRef + ".json?shallow=true").then(res => {
+      paginas = this.empleados;
+      /*console.log(Object.keys(res.data).length);
+      this.pageOne.totalItems = Object.keys(res.data).length;
+      console.log("Valor Total Items", JSON.stringify(this.pageOne.totalItems));
+      llaves = Object.keys(res.data);
+      paginas = Math.ceil(llaves.length / 10);
+
+      var indice = 9;
+      for (var i = 1; i < paginas + 1; i++) {
+        var modelo = {};
+        modelo.clave = llaves[indice];
+        console.log("Dentro del For", llaves[indice]);
+        modelo.pagina = i;
+        console.log("MODELO", JSON.stringify(modelo));
+        indice = indice + 10;
+        this.keyPagination.push(modelo);
+      }
+      this.keyPagination[this.keyPagination.length - 1].clave =
+        llaves[llaves.length - 1];*/
+
+      var keys = Object.keys(res.data).sort(); // Notice the .sort()!
+      var pageLength = 10;
+      var pageCount = keys.length / pageLength;
+      var currentPage = 1;
+      var promises = [];
+      var nextKey;
+      var query;
+      var key;
+
+      for (var i = 0; i < pageCount; i++) {
+        key = keys[i * pageLength];
+        console.log("key", key);
+        query = funcionariosRef
+          .orderByKey()
+          .limitToFirst(pageLength)
+          .startAt(key);
+        promises.push(query.once("value"));
+      }
+
+      Promise.all(promises).then(function(snaps) {
+        var pages = [];
+        snaps.forEach(function(snap) {
+          pages.push(snap.val());
+          paginas.push(snap.val());
+          //this.empleados.push(snap.val());
+        });
+
+        console.log("pages", pages);
+        //process.exit();
+      });
     });
   },
   computed: {
-    listadoEmpleado: function() {
+    /*listadoEmpleado: function() {
       this.pageOne.totalItems = this.empleados.length;
 
       if (this.pageOne.itemsPerPage === 10) {
         return this.empleados.slice(0, 10);
       } else {
       }
-    }
+    }*/
   },
   updated() {},
   watch: {
