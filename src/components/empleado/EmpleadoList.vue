@@ -47,7 +47,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="empleado in empleados" :key="empleado.id">
+                    <tr v-for="empleado in empleados[pageOne.currentPage-1]" >
                         <td> {{empleado.nombre}}</td>
                         <td> {{empleado.acnro}}</td>
                         <td> {{empleado.tipoCarga}}</td>
@@ -252,6 +252,7 @@ export default {
 
     axios.get(funcionariosRef + ".json?shallow=true").then(res => {
       paginas = this.empleados;
+      this.pageOne.totalItems = Object.keys(res.data).length;
       /*console.log(Object.keys(res.data).length);
       this.pageOne.totalItems = Object.keys(res.data).length;
       console.log("Valor Total Items", JSON.stringify(this.pageOne.totalItems));
@@ -282,6 +283,7 @@ export default {
 
       for (var i = 0; i < pageCount; i++) {
         key = keys[i * pageLength];
+        this.keyPagination.push(key);
         console.log("key", key);
         query = funcionariosRef
           .orderByKey()
