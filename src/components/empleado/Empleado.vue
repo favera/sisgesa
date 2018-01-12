@@ -26,9 +26,9 @@
                         </div>
             <div class="ten wide field">
                 <label for="">Sucursal:</label>
-                <select class="ui fluid dropdown"  name="sucursales" v-model="empleado.sucursal">
+                <select class="ui fluid dropdown"  name="sucursales" v-model="sucursal">
                     <option disabled value="">Seleccionar Sucursal..</option>
-                    <option v-for="sucursal in sucursales" :key="sucursal['.key']" v-bind:value="sucursal.nombre">{{sucursal.nombre}}</option>
+                    <option v-for="sucursal in sucursales" :key="sucursal['.key']" :selected="sucursal[2] ">{{sucursal.nombre}}</option>
                 </select>
             </div>
 
@@ -175,9 +175,8 @@ import { eventBus } from "./../../main";
 import { url } from "./../.././config/backend";
 
 import { db } from "./../.././config/firebase";
-
+let sucursalRef = db.ref("/sucursales");
 let funcionariosRef = db.ref("/funcionarios");
-let sucursalesRef = db.ref("/sucursales");
 
 export default {
   data() {
@@ -193,7 +192,7 @@ export default {
         salario: "",
         moneda: "",
         ips: "salario",
-        sucursal: ""
+        sucursalId: {}
       },
       money: {
         decimal: ",",
@@ -203,6 +202,7 @@ export default {
         precision: 0,
         masked: false /* doesn't work with directive */
       },
+      sucursal: "",
       sucursales: []
     };
   },
@@ -220,7 +220,13 @@ export default {
         .format("L")
         .toString();
 
+      this.empleado.sucursalId[this.sucursal] = true;
+
+      console.log("Test", this.empleado.sucursalId);
+
       funcionariosRef.push(this.empleado).then(alert("guardo"));
+
+      /*  <option v-for="sucursal in sucursales"  v-bind:value="sucursal.id" :key="sucursal.id" :selected="sucursal.id === empleado.sucursalId ? true : false" >{{sucursal.nombre}}</option> */
 
       /*#############*/
       /*if (typeof this.$route.params.id !== "undefined") {
@@ -265,7 +271,7 @@ export default {
     },
     obtenerEmpleado() {
       if (typeof this.$route.params.id != "undefined") {
-        axios
+        /* axios
           .get(url + "/empleados/" + this.$route.params.id)
           .then(response => {
             this.empleado.nombre = response.data.nombre;
@@ -275,7 +281,14 @@ export default {
             this.empleado.salario = response.data.salario;
             this.empleado.moneda = response.data.moneda;
             this.empleado.sucursalId = response.data.sucursalId;
-          });
+          });*/
+
+        console.log(funcionariosRef.child(this.$route.params.id));
+        funcionariosRef.child(this.$route.params.id).once("value", snapshot => {
+          console.log(snapshot.val());
+          this.empleado.nombre = snapshot.val().nombre;
+          this.sucursal = Object.keys(snapshot.val().sucursalId)[0];
+        });
       }
     },
     returnList() {
@@ -300,16 +313,16 @@ export default {
   },
   mounted() {
     $(this.$refs.sucursalcombo).dropdown({});
-    axios.get(url + "/sucursals").then(response => {
-      this.sucursales = response.data;
-    });
+    // axios.get(url + "/sucursals").then(response => {
+    //   this.sucursales = response.data;
+    // });
     $(this.$el)
       .find(".ui.fluid.dropdown")
       .dropdown();
   },
   created() {
     this.obtenerEmpleado();
-    this.$bindAsArray("sucursales", sucursalesRef);
+    this.$bindAsArray("sucursales", sucursalRef);
   },
   watch: {
     $route: "obtenerEmpleado"
