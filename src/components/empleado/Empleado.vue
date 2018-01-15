@@ -26,9 +26,10 @@
                         </div>
             <div class="ten wide field">
                 <label for="">Sucursal:</label>
-                <select class="ui fluid dropdown"  name="sucursales" v-model="sucursal">
+                <select name="sucursales" v-model="sucursalkey" >
                     <option disabled value="">Seleccionar Sucursal..</option>
-                    <option v-for="sucursal in sucursales" :key="sucursal['.key']" :selected="sucursal[2] ">{{sucursal.nombre}}</option>
+                    <option v-for="sucursal in sucursales" :key="sucursal['.key']" v-bind:value="sucursal['.key']" :selected="sucursal['.key'] === Object.keys(empleado.sucursalId)[0] ? true : false">{{sucursal.nombre}}</option>
+                    <option value=""></option>
                 </select>
             </div>
 
@@ -179,6 +180,7 @@ let sucursalRef = db.ref("/sucursales");
 let funcionariosRef = db.ref("/funcionarios");
 
 export default {
+  name: "funcionario",
   data() {
     return {
       empleado: {
@@ -202,7 +204,7 @@ export default {
         precision: 0,
         masked: false /* doesn't work with directive */
       },
-      sucursal: "",
+      sucursalkey: "",
       sucursales: []
     };
   },
@@ -213,81 +215,63 @@ export default {
       return checkValor / 30 / 8 / 60;
     },
     guardarEmpleado() {
-      this.empleado.fechaIngreso = moment(
-        this.empleado.fechaIngreso,
-        "DD/MM/YYYY"
-      )
-        .format("L")
-        .toString();
+      if (typeof this.$route.params.id !== "undefined") {
+        this.empleado.fechaIngreso = moment(
+          this.empleado.fechaIngreso,
+          "DD/MM/YYYY"
+        )
+          .format("L")
+          .toString();
 
-      this.empleado.sucursalId[this.sucursal] = true;
+        this.empleado.sucursalId[this.sucursalkey] = true;
 
-      console.log("Test", this.empleado.sucursalId);
-
-      funcionariosRef.push(this.empleado).then(alert("guardo"));
-
-      /*  <option v-for="sucursal in sucursales"  v-bind:value="sucursal.id" :key="sucursal.id" :selected="sucursal.id === empleado.sucursalId ? true : false" >{{sucursal.nombre}}</option> */
-
-      /*#############*/
-      /*if (typeof this.$route.params.id !== "undefined") {
-        axios
-          .put(url + "/empleados/" + this.$route.params.id, {
-            nombre: this.empleado.nombre,
-            acnro: this.empleado.acnro,
-            tipoCarga: this.empleado.tipoCarga,
-            tipoHoraExtra: this.empleado.tipoHoraExtra,
-            cargaLaboral: this.empleado.cargaLaboral,
-            salario: this.empleado.salario,
-            salarioMinuto: this.calcularSalarioMinuto(this.empleado.salario),
-            moneda: this.empleado.moneda,
-            sucursalId: this.empleado.sucursalId
-          })
+        funcionariosRef
+          .child(this.$route.params.id)
+          .update(this.empleado)
           .then(response => {
-            this.success();
+            this.editSuccess();
             this.cancelar();
             console.log(response);
-          })
-          .catch(error => console.log(error));
+          });
       } else {
-        axios
-          .post(url + "/empleados", {
-            nombre: this.empleado.nombre,
-            acnro: this.empleado.acnro,
-            tipoCarga: this.empleado.tipoCarga,
-            tipoHoraExtra: this.empleado.tipoHoraExtra,
-            cargaLaboral: this.empleado.cargaLaboral,
-            salario: this.empleado.salario,
-            salarioMinuto: this.calcularSalarioMinuto(this.empleado.salario),
-            moneda: this.empleado.moneda,
-            sucursalId: this.empleado.sucursalId
-          })
-          .then(response => {
+        this.empleado.fechaIngreso = moment(
+          this.empleado.fechaIngreso,
+          "DD/MM/YYYY"
+        )
+          .format("L")
+          .toString();
+
+        this.empleado.sucursalId[this.sucursalkey] = true;
+
+        console.log("Test", this.empleado.sucursalId);
+
+        funcionariosRef
+          .push(this.empleado)
+          .then(alert("guardo"))
+          .then(res => {
             this.success();
             this.cancelar();
-            console.log(response);
-          })
-          .catch(error => console.log(error));
-      }*/
+            console.log(res);
+          });
+      }
     },
     obtenerEmpleado() {
       if (typeof this.$route.params.id != "undefined") {
-        /* axios
-          .get(url + "/empleados/" + this.$route.params.id)
-          .then(response => {
-            this.empleado.nombre = response.data.nombre;
-            this.empleado.acnro = response.data.acnro;
-            this.empleado.cargaLaboral = response.data.cargaLaboral;
-            this.empleado.tipoHoraExtra = response.data.tipoHoraExtra;
-            this.empleado.salario = response.data.salario;
-            this.empleado.moneda = response.data.moneda;
-            this.empleado.sucursalId = response.data.sucursalId;
-          });*/
-
         console.log(funcionariosRef.child(this.$route.params.id));
         funcionariosRef.child(this.$route.params.id).once("value", snapshot => {
           console.log(snapshot.val());
           this.empleado.nombre = snapshot.val().nombre;
-          this.sucursal = Object.keys(snapshot.val().sucursalId)[0];
+          this.empleado.acnro = snapshot.val().acnro;
+          this.empleado.nroCedula = snapshot.val().nroCedula;
+          this.empleado.fechaIngreso = snapshot.val().fechaIngreso;
+          this.empleado.medioTiempo = snapshot.val().medioTiempo;
+          this.empleado.tipoHoraExtra = snapshot.val().tipoHoraExtra;
+          this.empleado.cargaLaboral = snapshot.val().cargaLaboral;
+          this.empleado.salario = snapshot.val().salario;
+          this.empleado.moneda = snapshot.val().moneda;
+          this.empleado.ips = snapshot.val().ips;
+          this.empleado.sucursalId = snapshot.val().sucursalId;
+          this.sucursalkey = Object.keys(snapshot.val().sucursalId)[0] || "";
         });
       }
     },
@@ -297,10 +281,17 @@ export default {
     cancelar() {
       this.$router.push({ name: "listadoEmpleado" });
     },
+    editSuccess() {
+      this.$notify({
+        title: "Exito!",
+        message: "El registro se actualizo correctamente",
+        type: "success"
+      });
+    },
     success() {
       this.$notify({
-        title: "Success",
-        message: "This is a success message",
+        title: "Exito! ;)",
+        message: "El registro se guardo correctamente",
         type: "success"
       });
     },
@@ -312,10 +303,6 @@ export default {
     }
   },
   mounted() {
-    $(this.$refs.sucursalcombo).dropdown({});
-    // axios.get(url + "/sucursals").then(response => {
-    //   this.sucursales = response.data;
-    // });
     $(this.$el)
       .find(".ui.fluid.dropdown")
       .dropdown();

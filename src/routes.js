@@ -7,6 +7,8 @@ import FeriadoList from './components/feriados/FeriadoList.vue'
 import Sucursal from './components/sucursal/Sucursal.vue';
 import SucursalList from './components/sucursal/SucursalList.vue';
 import Salario from './components/salario/Salarios.vue';
+import Calendario from './components/calendario/Calendario.vue';
+import CalendarioList from './components/calendario/CalendarioList.vue';
 
 import Home from './Home.vue'
 
@@ -42,5 +44,8 @@ export const routes = [
     { path: '/salarios', component: Salario },
     { path: '/feriados', component: FeriadoList, name: 'listadoFeriado' },
     { path: '/incluir-feriado', component: Feriado, name: 'incluirFeriado' },
-    { path: '/editar-feriado/:id', component: Feriado, name: 'editarFeriado' }
+    { path: '/editar-feriado/:id', component: Feriado, name: 'editarFeriado' },
+    { path: '/calendario', component: CalendarioList, name: 'listadoCalendario' },
+    { path: '/incluir-evento', component: Calendario, name: 'incluirEvento' },
+    { path: '/editar-evento', component: Calendario, name: 'editarEvento' }
 ]

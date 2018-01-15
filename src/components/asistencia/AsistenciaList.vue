@@ -27,7 +27,7 @@
                             </div>
     <div class="actions">
       
-      <button class="ui positive teal button" @click="confirmarArchivo">Aceptar</button>
+      <button class="ui positive teal button" @click="postFirebase">Aceptar</button>
       <div class="ui deny button" @click="cancelarArchivo">Cancelar</div>
     </div>
   </div>
@@ -118,25 +118,24 @@
                         <tr>
                             <th>Funcionario</th>
                             <th>Fecha</th>
-                            <th>Marcacion Entrada</th>
-                            <th>Marcacion Salida</th>
+                            <th>M. Entrada</th>
+                            <th>M. Salida</th>
                             <th>Horas Trabajadas</th>
-                            <th>Banco de Horas</th>
                             <th>Horas Faltantes</th>
-                            <!-- <th>Banco de Horas</th> -->
-                            <!-- <th>Observacion</th> -->
+                            <th>Banco de Horas</th>
+                            <th>Observacion</th>
                             <th>Opciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="marcacion in marcaciones" :key="marcacion.id" v-bind:class="{error: marcacion.estilo.ausente, warning: marcacion.estilo.incompleto }" >
-                            <td>{{marcacion.empleado.nombre}}</td>
+                        <tr v-for="marcacion in marcaciones" :key="marcacion['.key']" >
+                            <td>{{marcacion.nombreFuncionario}}</td>
                             <td>{{marcacion.fecha}}</td>
                             <td>{{(marcacion.entrada || "--") + " hs"}}</td>
                             <td>{{(marcacion.salida || "--") + " hs"}}</td>
-                            <td>{{marcacion.horasTrabajadas + " hs"}}</td>
-                            <td>{{(marcacion.bancoHora || "--") + " hs"}} </td>
-                            <td>{{(marcacion.retraso || "--" )+ " hs"}}</td>
+                             <td>{{marcacion.horasTrabajadas + " hs"}}</td>
+                            <!--<td>{{(marcacion.bancoHora || "--") + " hs"}} </td>
+                            <td>{{(marcacion.retraso || "--" )+ " hs"}}</td> -->
                             <!-- <td>{{marcacion.horasExtras + " hs"}} </td> -->
                             <td>
                                 <i @click="guardarPaginacion(marcacion.id)" class="edit row icon"></i>
@@ -180,17 +179,34 @@ import moment from "moment";
 import axios from "axios";
 import Pagination from ".././shared/Pagination.vue";
 import { url } from "./../.././config/backend";
+import { db } from "./../.././config/firebase";
+
+let funcionariosRef = db.ref("/funcionarios");
+let calendarioRef = db.ref("/calendario");
+let asistenciasRef = db.ref("/asistencias");
 
 export default {
   data() {
     return {
       datosMarcaciones: [],
       marcaciones: [],
+      eventos: [],
       preDatos: [],
       ausente: false,
       atrasado: false,
       modal: null,
       errors: [],
+      marcacion: {
+        fecha: null,
+        funcionarioId: null,
+        entrada: null,
+        salida: null,
+        horasTrabajadas: null,
+        horasFaltantes: null,
+        horasExtras: null,
+        observacion: null,
+        estilo: {}
+      },
       funcionarios: [],
       nombreBusqueda: null,
       searchDateStart: "",
@@ -254,8 +270,8 @@ export default {
         .modal("refresh");
     },
     confirmarArchivo() {
-      Array.from(this.funcionarios).forEach(value => {
-        console.log("EMPLEADO " + value.nombre + value.id);
+      this.funcionarios.forEach(value => {
+        console.log("EMPLEADO " + value.nombre + value[".key"]);
 
         var ausencia = this.datosMarcaciones.findIndex(item => {
           return item.empleadoId === value.id;
@@ -325,36 +341,34 @@ export default {
     },
     handleSelectedFile(convertedData) {
       this.datosMarcaciones.length = 0;
-      console.dir("####### Dtos " + JSON.stringify(convertedData));
+      // console.dir("####### Dtos " + JSON.stringify(convertedData));
       this.preDatos = convertedData.body;
-      //console.log("Datos" + this.preDatos);
-      Array.from(this.funcionarios).forEach(value => {
+      this.funcionarios.forEach(value => {
+        console.log("Funcionario FIREBASE", value.acnro);
         this.orderData(
           value.acnro,
-          value.id,
+          value[".key"],
           value.nombre,
           value.cargaLaboral,
-          value.sucursal.horarioEntrada,
-          value.sucursal.horarioSalida
+          value.medioTiempo,
+          value.vacaciones
         );
       });
       this.abrirModal();
     },
     orderData(
       acnro,
-      empleadoid,
+      empleadoId,
       nombre,
       cargaLaboral,
-      horaEntrada,
-      horaSalida
+      medioTiempo,
+      vacaciones
     ) {
       var modelo = {
         fecha: "",
         empleadoId: null,
         nombre: "",
         horasExtras: "",
-        horaEntrada: horaEntrada,
-        horaSalida: horaSalida,
         entrada: null,
         salida: null,
         horarios: [],
@@ -362,12 +376,13 @@ export default {
       };
 
       this.applyCss = modelo.isConfirmed;
+      console.log("Predatos", JSON.stringify(this.preDatos));
       for (let arr of this.preDatos) {
         if (acnro === arr["AC-No."]) {
           console.log(
             "acnro variable: " + acnro + "|" + "ACNRO array: " + arr["AC-No."]
           );
-          modelo.empleadoId = empleadoid;
+          modelo.empleadoId = empleadoId;
           modelo.nombre = nombre;
           modelo.fecha = moment(arr.Horario, "DD/MM/YYYY").format("L");
           modelo.horasExtras = moment
@@ -451,6 +466,35 @@ export default {
           .format("HH:mm");
       }
     },
+    postFirebase() {
+      console.log("Vino ACa");
+      this.datosMarcaciones.forEach(marcacion => {
+        console.log("Entro al for");
+        this.marcacion.fecha = marcacion.fecha;
+        this.marcacion.funcionarioId = marcacion.empleadoId;
+        this.marcacion.nombreFuncionario = this.nombreFuncionario(
+          marcacion.empleadoId
+        );
+        this.marcacion.entrada = marcacion.entrada;
+        this.marcacion.salida = marcacion.salida;
+        //calculo de Horas trabajadas
+        this.marcacion.horasTrabajadas = this.handleHorasTrabajadas(
+          marcacion.entrada,
+          marcacion.salida
+        );
+
+        asistenciasRef.push(this.marcacion).then(res => console.log(res));
+      });
+      console.log("pero no entro en el for");
+    },
+    nombreFuncionario(empleadoId) {
+      var nombre;
+      funcionariosRef.child(empleadoId).once("value", snap => {
+        nombre = snap.val().nombre;
+        console.log("Usuario retornado de firebase", snap.val().nombre);
+      });
+      return nombre;
+    },
     //Hace post al array marcaciones y luego llama la lista, por eso es asincronico
     async confirmData() {
       await Promise.all(
@@ -503,7 +547,7 @@ export default {
         })
       );
 
-      this.obtenerDatos();
+      // this.obtenerDatos();
       //cambia de color en la lista
       this.applyCss = true;
       console.log("after async");
@@ -593,7 +637,7 @@ export default {
       var horasTrabajadas = this.handleHorasTrabajadas(entrada, salida),
         result;
       console.log("Horas Extras " + horasExtras);
-      //console.log("Horas trabajadas " + horasTrabajadas);
+      console.log("Horas trabajadas " + horasTrabajadas);
       if (!horasTrabajadas.localeCompare("00:00")) {
         return "-" + moment.utc(horasExtras * 1000 * 60).format("HH:mm");
       } else {
@@ -783,8 +827,34 @@ export default {
     }
   },
   created() {
-    this.llamarFuncionarios();
-    this.obtenerDatos();
+    //this.llamarFuncionarios();
+    //this.obtenerDatos();
+
+    this.$bindAsArray("funcionarios", funcionariosRef);
+    this.$bindAsArray("eventos", calendarioRef);
+    this.$bindAsArray("marcaciones", asistenciasRef);
+
+    /*var funcionariosSucursalesRef = funcionariosRef
+      .child("-L20uHGA7sTsMIatZmAD")
+      .child("sucursalId");
+
+    funcionariosSucursalesRef.on("child_added", function(snap) {
+      sucursalesRef.child(snap.key).once("value", function(snapsuc) {
+        console.log("SNAP PRINT", snap.val());
+        console.log(snapsuc.val());
+      });
+    });*/
+
+    /*var commentsRef = new Firebase(
+      "https://awesome.firebaseio-demo.com/comments"
+    );
+    var linkRef = new Firebase("https://awesome.firebaseio-demo.com/links");
+    var linkCommentsRef = linkRef.child(LINK_ID).child("comments");
+    linkCommentsRef.on("child_added", function(snap) {
+      commentsRef.child(snap.key()).once("value", function() {
+        // Render the comment on the link page.
+      });
+    });*/
   },
   mounted() {
     this.modal = $(this.$el).find(".ui.longer.modal");

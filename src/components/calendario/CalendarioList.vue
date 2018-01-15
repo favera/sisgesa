@@ -1,0 +1,215 @@
+<template>
+    <div class="ui twelve wide column">
+    
+        <div class="ui form">
+            <h4 class="ui dividing header">Listado de Eventos en el Calendario</h4>
+            <div class="two fields">
+                <div class="twelve wide field">
+                    
+
+                    <div class="inline fields">
+                      <div class="ten wide field">
+                        <div class="ui icon input">
+                          <input type="text" placeholder="Buscar Evento...">
+                          <i class="inverted teal circular search link icon" ></i>
+                        </div>
+                      </div>
+
+                      <div class="sixteen wide field">
+                        <label>Listar por</label>
+                         <div class="field">
+                        <div class="ui radio checkbox">
+                          <input type="radio" name="feriado" value="feriado" v-model="listado">
+                          <label>Feriados</label>
+                        </div>
+                      </div>
+
+                      <div class="field">
+                        <div class="ui radio checkbox">
+                          <input type="radio" name="vacaciones" value="vacaciones" v-model="listado">
+                          <label>Vacaciones</label>
+                        </div>
+                      </div>
+                      </div>
+
+                      
+                     
+                       
+                    </div>
+                  </div>
+    
+                <div class="field">
+                    <div class="ui right floated main menu">
+                    <a class="icon item" @click="incluirEvento">
+                      <i class="plus icon"></i>
+                    </a>
+                    <a class="icon item">
+                      <i class="print icon"></i>
+                    </a>
+                  </div>
+                   
+    
+                </div>
+            </div>
+    
+        </div>
+    
+        <div class="field" v-if="listado==='feriado'">
+            <table class="ui teal celled table">
+                <thead>
+                    <tr>
+                        <th>Tipo de Evento</th>
+                        <th>Fecha del Feriado</th>
+                        <th>Opciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="feriado in feriados" :key="feriado['.key']">
+                       <td class="capital">{{feriado.tipoEvento}}</td>
+                        <td>{{feriado.fechaFeriado}}</td>
+                        <td>
+                            <router-link :to="{name: 'editarEvento', params: { id: feriado['.key']}}">
+                                <i class="edit row icon"></i>
+                            </router-link>
+                            
+                            <i class="trash icon" @click="confirm(feriado['.key'])"></i>
+                        </td>
+                    </tr>
+                  
+                </tbody>
+            </table>
+    
+        </div>
+
+        <div class="field" v-else-if="listado==='vacaciones'">
+          <table class="ui teal celled table">
+            <thead>
+              <tr>
+                <th>Tipo de Evento</th>
+                <th>Funcionario</th>
+                <th>Inicio de Vacaciones</th>
+                <th>Fin de Vacaciones</th>
+                <th>Opciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr v-for="vacacion in vacaciones" :key="vacacion['.key']">
+                <td class="capital">{{vacacion.tipoEvento}}</td>
+                <td>{{vacacion.funcionario}}</td>
+                <td>{{vacacion.fechaInicio}}</td>
+                <td>{{vacacion.fechaFin}}</td>
+                <td>
+                            <router-link :to="{name: 'editarEvento', params: { id: vacacion['.key']}}">
+                                <i class="edit row icon"></i>
+                            </router-link>
+                            
+                            <i class="trash icon" @click="confirm(vacacion['.key'])"></i>
+                        </td>
+              </tr>
+            </tbody>
+
+            <tfoot>
+
+            </tfoot>
+          </table>
+        </div>
+    
+    </div>
+</template>
+
+<script>
+import axios from "axios";
+import { db } from "./../.././config/firebase";
+let calendarioRef = db.ref("/calendario");
+let funcionariosRef = db.ref("/funcionarios");
+
+export default {
+  data() {
+    return {
+      calendario: [],
+      feriados: [],
+      vacaciones: [],
+      listado: "feriado"
+    };
+  },
+  methods: {
+    incluirEvento() {
+      this.$router.push({ name: "incluirEvento" });
+    },
+
+    confirm(id) {
+      this.$confirm(
+        "El registro sera eliminado permanentemente. Desea Continuar?",
+        "Atencion!",
+        {
+          confirmButtonText: "OK",
+          cancelButtonText: "Cancelar",
+          type: "warning"
+        }
+      )
+        .then(() => {
+          this.eliminarFeriado(id);
+          this.$message({
+            type: "success",
+            message: "Registro Eliminado"
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "Proceso Cancelado"
+          });
+        });
+    },
+    eliminarFeriado(id) {
+      var index = this.sucursales.findIndex(i => i.id === id);
+      db.ref("/feriados/" + id).remove();
+    },
+    separarListados() {
+      this.calendario.forEach(element => {
+        console.log("ejecuta metodo");
+        if (element.tipoEvento === "feriado") {
+          console.log("Entro pero no hace push");
+          this.feriados.push(element);
+        } else {
+          console.log("aca no se que pasa");
+          var calendarioFuncionariosRef = calendarioRef
+            .child(element[".key"])
+            .child("funcionarioId");
+          var vacaciones = this.vacaciones;
+          calendarioFuncionariosRef.on("child_added", function(snap) {
+            funcionariosRef.child(snap.key).once("value", function(snapfunc) {
+              console.log("SNAP PRINT", snap.val());
+              console.log(snapfunc.val());
+              element["funcionario"] = snapfunc.val().nombre;
+              console.log("TESTANDO", JSON.stringify(element));
+              vacaciones.push(element);
+            });
+          });
+        }
+      });
+    }
+  },
+  created() {
+    this.$bindAsArray("calendario", calendarioRef);
+    //this.separarListados();
+  },
+  updated() {
+    //this.separarListados();
+  },
+
+  mounted() {
+    //this.separarListados();
+  }
+};
+</script>
+
+<style>
+.ui.form .field > label {
+  margin: 0em 0em 1em;
+}
+#app > div.pusher > div > div > div.field > table > tbody > tr > td.capital {
+  text-transform: capitalize;
+}
+</style>

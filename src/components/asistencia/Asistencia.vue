@@ -52,7 +52,9 @@
 <script>
 import axios from "axios";
 import moment from "moment";
-import { url } from "./../.././config/backend";
+//import { url } from "./../.././config/backend";
+import { db } from "./../.././config/firebase";
+let asistenciaRef = db.ref("/asistencias");
 export default {
   data() {
     return {
@@ -149,6 +151,26 @@ export default {
           })
           .catch(e => console.log(e));
       }
+    },
+    obtenerSabados() {
+      var d = new Date(),
+        month = d.getMonth(),
+        mondays = [];
+
+      d.setDate(1);
+
+      // Get the first Monday in the month
+      while (d.getDay() !== 1) {
+        d.setDate(d.getDate() + 1);
+      }
+
+      // Get all the other Mondays in the month
+      while (d.getMonth() === month) {
+        mondays.push(new Date(d.getTime()));
+        d.setDate(d.getDate() + 7);
+      }
+
+      return mondays;
     },
     calcularRetraso(empleadoId, entrada) {
       var horaEntrada;

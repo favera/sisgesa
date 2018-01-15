@@ -6,8 +6,8 @@
                 <div class="field">
 
                     <div class="ui icon input">
-                        <input type="text" placeholder="Buscar Funcionario...">
-                        <i class="inverted teal circular search link icon"></i>
+                        <input v-model="parametro" type="text" placeholder="Buscar Funcionario...">
+                        <i @click="consultarEmpleado(parametro)" class="inverted teal circular search link icon"></i>
                     </div>
 
                 </div>
@@ -57,7 +57,7 @@
                                 <i class="edit row icon"></i>
                             </span>
 
-                            <i class="trash icon" @click="confirm(empleado.id)"></i>
+                            <i class="trash icon" @click="confirm(empleado['.key'])"></i>
                         </td>
                     </tr>
 
@@ -85,9 +85,11 @@ import { db } from "./../.././config/firebase";
 let funcionariosRef = db.ref("/funcionarios");
 
 export default {
+  name: "empleadoList",
   props: ["page"],
   data() {
     return {
+      parametro: "",
       empleados: [],
       empleadosFirebase: [],
       keyPagination: [],
@@ -121,6 +123,14 @@ export default {
           tipoHoraExtra: "bancoHora"
         });
       });
+    },
+    consultarEmpleado(parametro) {
+      funcionariosRef
+        .orderByChild("nombre")
+        .startAt(parametro)
+        .on("child_added", function(snapshot) {
+          console.log(snapshot.val());
+        });
     },
     guardarPaginacion(empleadoId) {
       console.log("IDDD", empleadoId);
@@ -163,16 +173,20 @@ export default {
     eliminarEmpleado(id) {
       var index = this.empleados.findIndex(i => i.id === id);
       console.log(index);
-      axios
+      db
+        .ref("/funcionarios/" + id)
+        .remove()
+        .then(this.empleados.splice(index, 1));
+      /*axios
         .delete(url + "/empleados/" + id)
-        .then(console.log(this.empleados.splice(index, 1)));
+        .then(console.log(this.empleados.splice(index, 1)));*/
     },
     obtenerListadoEmpleado() {
       var page = JSON.parse(localStorage.getItem("page") || null);
       console.log("Pagina" + page);
 
       if (page !== null) {
-        //this.pageOne.currentPage = page.currentPage;
+        this.pageOne.currentPage = page.currentPage;
         this.pageOne.itemsPerPage = page.itemsPerPage;
         this.pageOne.totalItems = page.totalItems;
 
@@ -226,10 +240,10 @@ export default {
     }
   },
   created() {
-    this.$bindAsArray(
-      "empleados",
-      funcionariosRef.orderByKey().limitToFirst(10)
-    );
+    // this.$bindAsArray(
+    //   "empleados",
+    //   funcionariosRef.orderByKey().limitToFirst(10)
+    // );
 
     axios.get(funcionariosRef + ".json?shallow=true").then(res => {
       this.pageOne.totalItems = Object.keys(res.data).length;
@@ -243,7 +257,24 @@ export default {
         key = keys[i * pageLength];
         this.keyPagination.push(key);
       }
+
+      var page = JSON.parse(localStorage.getItem("page") || null);
+      console.log("Pagina" + JSON.stringify(page));
+      if (page !== null) {
+        this.pageOne.currentPage = page.currentPage;
+        this.pageOneChanged(page.currentPage);
+      } else {
+        this.pageOneChanged(this.pageOne.currentPage);
+      }
     });
+  },
+  updated() {
+    // var page = JSON.parse(localStorage.getItem("page") || null);
+    // console.log("Pagina" + JSON.stringify(page));
+    // if (page !== null) {
+    //   this.pageOne.currentPage = page.currentPage;
+    //   this.pageOneChanged(page.currentPage);
+    // }
   },
   watch: {
     $route: "obtenerListadoEmpleado"
