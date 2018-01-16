@@ -64,15 +64,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="feriado in feriados" :key="feriado['.key']">
-                       <td class="capital">{{feriado.tipoEvento}}</td>
-                        <td>{{feriado.fechaFeriado}}</td>
+                    <tr v-for="evento in eventos" :key="evento['.key']" v-show="evento.tipoEvento==='feriado'">
+                       <td class="capital">{{evento.tipoEvento}}</td>
+                        <td>{{evento.fechaFeriado}}</td>
                         <td>
-                            <router-link :to="{name: 'editarEvento', params: { id: feriado['.key']}}">
+                            <router-link :to="{name: 'editarEvento', params: { id: evento['.key']}}">
                                 <i class="edit row icon"></i>
                             </router-link>
                             
-                            <i class="trash icon" @click="confirm(feriado['.key'])"></i>
+                            <i class="trash icon" @click="confirm(evento['.key'])"></i>
                         </td>
                     </tr>
                   
@@ -94,17 +94,17 @@
             </thead>
 
             <tbody>
-              <tr v-for="vacacion in vacaciones" :key="vacacion['.key']">
-                <td class="capital">{{vacacion.tipoEvento}}</td>
-                <td>{{vacacion.funcionario}}</td>
-                <td>{{vacacion.fechaInicio}}</td>
-                <td>{{vacacion.fechaFin}}</td>
+              <tr v-for="evento in eventos" :key="evento['.key']"  v-show="evento.tipoEvento==='vacaciones'">
+                <td class="capital">{{evento.tipoEvento}}</td>
+                <td>{{evento.funcionario}}</td>
+                <td>{{evento.fechaInicio}}</td>
+                <td>{{evento.fechaFin}}</td>
                 <td>
-                            <router-link :to="{name: 'editarEvento', params: { id: vacacion['.key']}}">
+                            <router-link :to="{name: 'editarEvento', params: { id: evento['.key']}}">
                                 <i class="edit row icon"></i>
                             </router-link>
                             
-                            <i class="trash icon" @click="confirm(vacacion['.key'])"></i>
+                            <i class="trash icon" @click="confirm(evento['.key'], evento.funcionarioId)"></i>
                         </td>
               </tr>
             </tbody>
@@ -127,9 +127,7 @@ let funcionariosRef = db.ref("/funcionarios");
 export default {
   data() {
     return {
-      calendario: [],
-      feriados: [],
-      vacaciones: [],
+      eventos: [],
       listado: "feriado"
     };
   },
@@ -162,11 +160,28 @@ export default {
           });
         });
     },
-    eliminarFeriado(id) {
-      var index = this.sucursales.findIndex(i => i.id === id);
-      db.ref("/feriados/" + id).remove();
-    },
-    separarListados() {
+    eliminarFeriado(id, funcionarioId) {
+      console.log("id", id);
+
+      if (this.listado === "feriado") {
+        var index = this.feriados.findIndex(i => i.id === id);
+        console.log("index", index);
+        db
+          .ref("/calendario/" + id)
+          .remove()
+          .then(this.feriados.splice(index, 1));
+      } else {
+        //delete from calendario and funcionarios, passing null to update will delete te item
+        var updates = {};
+        updates["/calendario/" + id] = null;
+        updates[
+          "/funcionarios/" + Object.keys(funcionarioId)[0] + "/vacaciones" + id
+        ] = null;
+
+        db.ref().update(updates);
+      }
+    }
+    /*separarListados() {
       this.calendario.forEach(element => {
         console.log("ejecuta metodo");
         if (element.tipoEvento === "feriado") {
@@ -189,10 +204,10 @@ export default {
           });
         }
       });
-    }
+    }*/
   },
   created() {
-    this.$bindAsArray("calendario", calendarioRef);
+    this.$bindAsArray("eventos", calendarioRef);
     //this.separarListados();
   },
   updated() {

@@ -37,7 +37,7 @@
     <div class="ten wide field" v-else-if="calendario.tipoEvento ==='vacaciones'">
         <div class="field">
             <label for="">Seleccionar Funcionario</label>
-            <select v-model="funcionariokey" class="ui fluid dropdown">
+            <select v-model="funcionariokey" >
                 <option disabled value="">Seleccionar Funcionario..</option>
                 <option v-for="funcionario in funcionarios" :key="funcionario['.key']" v-bind:value="funcionario['.key']" :selected="funcionario['.key'] === Object.keys(calendario.funcionarioId)[0] ? true : false">{{funcionario.nombre}}</option>
             </select>
@@ -196,6 +196,9 @@ export default {
               .toString();
             this.calendario.fechaFinUtc = this.calendario.fechaFinUtc.toString();
             this.calendario.funcionarioId[this.funcionariokey] = true;
+            this.calendario.funcionario = this.obtenerNombreFuncionario(
+              this.funcionariokey
+            );
 
             //inserta registro en calendario y en funcionario con el mismo id
             // Get a key for a new Post.
@@ -213,7 +216,10 @@ export default {
               "/funcionarios/" + this.funcionariokey + "/vacaciones"
             ] = vacaciones;
 
-            db.ref().update(updates);
+            db
+              .ref()
+              .update(updates)
+              .then(this.success(), this.cancelar());
           }
         }
 
@@ -221,6 +227,14 @@ export default {
           .push(this.calendario)
           .then(this.success(), this.cancelar());*/
       }
+    },
+    obtenerNombreFuncionario(key) {
+      var nombre;
+      funcionariosRef.child(key).once("value", snap => {
+        nombre = snap.val().nombre;
+      });
+
+      return nombre;
     },
     cancelar() {
       this.$router.push({ name: "listadoCalendario" });
