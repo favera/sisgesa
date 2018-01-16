@@ -198,6 +198,7 @@ export default {
       atrasado: false,
       modal: null,
       errors: [],
+      isSabado: null,
       marcacion: {
         fecha: null,
         funcionarioId: null,
@@ -359,6 +360,7 @@ export default {
       });
       this.abrirModal();
       this.getSabados(this.datosMarcaciones[0].fecha);
+      this.isSabado = this.findSabado(this.datosMarcaciones[0].fecha);
     },
     orderData(
       acnro,
@@ -491,14 +493,12 @@ export default {
         this.marcacion.horasExtras = this.calculoBancoH(
           marcacion.entrada,
           marcacion.salida,
-          marcacion.fecha,
           marcacion.empleadoId
         );
 
         this.marcacion.horasFaltantes = this.calculoHorasFaltantes(
           marcacion.entrada,
           marcacion.salida,
-          marcacion.fecha,
           marcacion.empleadoId
         );
 
@@ -534,131 +534,146 @@ export default {
 
       //return sabados;
     },
-    calculoBancoH(entrada, salida, fecha, funcionarioId) {
-      var findFecha = moment(fecha, "DD/MM/YYYY").toDate();
+    calculoBancoH(entrada, salida, funcionarioId) {
+      var sabadoMedioTiempo;
+      var cargaLaboral;
 
-      var fechaSabado = this.sabados.findIndex(element => {
-        console.log("fecha pasada", findFecha);
-        console.log("element", element);
-        if (findFecha.getTime() === element.getTime()) {
-          return true;
-        }
-        return false;
+      funcionariosRef.child(funcionarioId).once("value", snap => {
+        sabadoMedioTiempo = snap.val().medioTiempo;
+        cargaLaboral = snap.val().cargaLaboral;
+        console.log("SNAP", cargaLaboral, sabadoMedioTiempo);
       });
 
-      console.log("retorno Fecha", fechaSabado);
-
-      if (fechaSabado === 0) {
-        var sabadoMedioTiempo;
-        var cargaLaboral;
-        funcionariosRef.child(funcionarioId).once("value", snap => {
-          sabadoMedioTiempo = snap.val().medioTiempo;
-          cargaLaboral = snap.val().cargaLaboral;
-        });
-
+      if (this.isSabado !== -1) {
         if (sabadoMedioTiempo) {
-          var horasTrabajadas =
-            moment.duration(salida, "HH:mm").asMinutes() -
-            moment.duration(entrada, "HH:mm").asMinutes();
-          var horasExtras = horasTrabajadas - 300;
-          if (horasExtras > 0) {
-            return horasExtras;
-          } else {
+          var horasTrabajadas = this.handleHorasTrabajadas(entrada, salida);
+
+          console.log("Resultado Horas Trabajadas", horasTrabajadas);
+
+          if (!horasTrabajadas.localeCompare("00:00")) {
+            console.log("ENTRO al COMPARE");
             return false;
           }
-        } else {
-          var horasTrabajadas =
-            moment.duration(salida, "HH:mm").asMinutes() -
-            moment.duration(entrada, "HH:mm").asMinutes();
           var horasExtras =
-            horasTrabajadas -
+            moment.duration(horasTrabajadas, "HH:mm").asMinutes() - 300;
+          console.log("Resultado Horas Extras", horasExtras);
+          if (horasExtras > 0) {
+            return this.handleNegative(horasExtras);
+          }
+          return false;
+        } else {
+          var horasTrabajadas = this.handleHorasTrabajadas(entrada, salida);
+
+          console.log("Resultado Horas Trabajadas", horasTrabajadas);
+
+          if (!horasTrabajadas.localeCompare("00:00")) {
+            return false;
+          }
+
+          console.log("Carga Laboral", cargaLaboral);
+
+          var horasExtras =
+            moment.duration(horasTrabajadas, "HH:mm").asMinutes() -
             moment.duration(cargaLaboral, "HH:mm").asMinutes();
+          console.log(moment.duration(cargaLaboral, "HH:mm").asMinutes());
+          console.log("Resultado Horas Extras", horasExtras);
 
           if (horasExtras > 0) {
-            return horasExtras;
+            console.log("Entro pero no Retorno segundo else horas Trabajadas");
+            return this.handleNegative(horasExtras);
           }
 
           return false;
         }
       } else {
-        var cargaLaboral;
-        funcionariosRef.child(funcionarioId).once("value", snap => {
-          cargaLaboral = snap.val().cargaLaboral;
-        });
+        var horasTrabajadas = this.handleHorasTrabajadas(entrada, salida);
 
-        var horasTrabajadas =
-          moment.duration(salida, "HH:mm").asMinutes() -
-          moment.duration(entrada, "HH:mm").asMinutes();
+        console.log("Resultado Horas Trabajadas", horasTrabajadas);
+
+        if (!horasTrabajadas.localeCompare("00:00")) {
+          return false;
+        }
         var horasExtras =
-          horasTrabajadas - moment.duration(cargaLaboral, "HH:mm").asMinutes();
+          moment.duration(horasTrabajadas, "HH:mm").asMinutes() -
+          moment.duration(cargaLaboral, "HH:mm").asMinutes();
+
+        console.log("Resultado Horas Extras", horasExtras);
+        console.log(moment.duration);
 
         if (horasExtras > 0) {
-          return horasExtras;
+          console.log("Entro pero no Retorno tercer else horas Trabajadas");
+          return this.handleNegative(horasExtras);
         }
 
         return false;
       }
     },
 
-    calculoHorasFaltantes(entrada, salida, fecha, funcionarioId) {
-      var findFecha = moment(fecha, "DD/MM/YYYY").toDate();
-
-      var fechaSabado = this.sabados.find(element => {
-        console.log(findFecha);
-        console.log(fechaSabado);
-        return findFecha === element;
+    calculoHorasFaltantes(entrada, salida, funcionarioId) {
+      var sabadoMedioTiempo;
+      var cargaLaboral;
+      funcionariosRef.child(funcionarioId).once("value", snap => {
+        sabadoMedioTiempo = snap.val().medioTiempo;
+        cargaLaboral = snap.val().cargaLaboral;
       });
 
-      if (fechaSabado) {
-        var sabadoMedioTiempo;
-        var cargaLaboral;
-        funcionariosRef.child(funcionarioId).once("value", snap => {
-          sabadoMedioTiempo = snap.val().medioTiempo;
-          cargaLaboral = snap.val().cargaLaboral;
-        });
-
+      if (this.isSabado !== -1) {
         if (sabadoMedioTiempo) {
-          var horasTrabajadas =
-            moment.duration(salida, "HH:mm").asMinutes() -
-            moment.duration(entrada, "HH:mm").asMinutes();
-          var horasExtras = horasTrabajadas - 300;
-          if (horasExtras < 0) {
-            return horasExtras;
-          } else {
-            return false;
+          var horasTrabajadas = this.handleHorasTrabajadas(entrada, salida),
+            result;
+          console.log("Horas trabajadas " + horasTrabajadas);
+          if (!horasTrabajadas.localeCompare("00:00")) {
+            return "-" + moment.utc(300 * 1000 * 60).format("HH:mm");
           }
+          result = moment.duration(horasTrabajadas, "HH:mm").asMinutes() - 300;
+
+          if (result < 0) {
+            return this.handleNegative(result);
+          }
+          return false;
         } else {
-          var horasTrabajadas =
-            moment.duration(salida, "HH:mm").asMinutes() -
-            moment.duration(entrada, "HH:mm").asMinutes();
+          var horasTrabajadas = this.handleHorasTrabajadas(entrada, salida);
+
+          if (!horasTrabajadas.localeCompare("00:00")) {
+            return "-" + cargaLaboral;
+          }
           var horasExtras =
-            horasTrabajadas -
+            moment.duration(horasTrabajadas, "HH:mm").asMinutes() -
             moment.duration(cargaLaboral, "HH:mm").asMinutes();
 
           if (horasExtras < 0) {
-            return horasExtras;
+            return this.handleNegative(horasExtras);
           }
 
           return false;
         }
       } else {
-        var cargaLaboral;
-        funcionariosRef.child(funcionarioId).once("value", snap => {
-          cargaLaboral = snap.val().cargaLaboral;
-        });
+        var horasTrabajadas = this.handleHorasTrabajadas(entrada, salida);
 
-        var horasTrabajadas =
-          moment.duration(salida, "HH:mm").asMinutes() -
-          moment.duration(entrada, "HH:mm").asMinutes();
+        if (!horasTrabajadas.localeCompare("00:00")) {
+          return "-" + cargaLaboral;
+        }
         var horasExtras =
-          horasTrabajadas - moment.duration(cargaLaboral, "HH:mm").asMinutes();
+          moment.duration(horasTrabajadas, "HH:mm").asMinutes() -
+          moment.duration(cargaLaboral, "HH:mm").asMinutes();
 
         if (horasExtras < 0) {
-          return horasExtras;
+          return this.handleNegative(horasExtras);
         }
 
         return false;
       }
+    },
+    findSabado(fecha) {
+      var findFecha = moment(fecha, "DD/MM/YYYY").toDate();
+
+      var fechaSabado = this.sabados.findIndex(element => {
+        console.log(findFecha);
+        console.log(fechaSabado);
+        return findFecha.getTime() === element.getTime();
+      });
+      console.log("INDICE SABADO", fechaSabado);
+      return fechaSabado;
     },
     //Hace post al array marcaciones y luego llama la lista, por eso es asincronico
     async confirmData() {
