@@ -51,15 +51,15 @@
 
                         </div>
 
-                        <div class="field">
+                        <!-- <div class="field">
                             <el-date-picker v-model="searchDateStart" type="date" placeholder="Seleccionar fecha" format="dd/MM/yyyy">
                             </el-date-picker>
-                        </div>
+                        </div> -->
 
-                        <div class="field">
+                        <!-- <div class="field">
                             <el-date-picker v-model="searchDateEnd" type="date" placeholder="Seleccionar fecha" format="dd/MM/yyyy" >
                             </el-date-picker>
-                        </div>
+                        </div> -->
 
                         <div class="field" @click="obtenerDatos">
                             <button class="ui teal button">Listar</button>
@@ -155,8 +155,7 @@
                           <th></th>
                           <th></th>
                           <th></th>
-                          <th>{{totalBancoHora}} Minutos</th>
-                          <th>{{totalRetraso}} Minutos</th>
+                          <th>Banco de Horas: {{totalBancoHora}} Minutos Descuentos: {{totalRetraso}} </th>
                           <th></th>
                            
                         </tr>
@@ -191,6 +190,7 @@ export default {
   data() {
     return {
       datosMarcaciones: [],
+      listado: [],
       marcaciones: [],
       eventos: [],
       preDatos: [],
@@ -218,6 +218,7 @@ export default {
       ausencias: [],
       totalBancoHora: 0,
       totalRetraso: 0,
+      totalHoraExtra: 0,
       pageOne: {
         currentPage: 1,
         totalItems: 0,
@@ -263,6 +264,8 @@ export default {
     limpiarDatos() {
       this.json_data.length = 0;
       this.nombreBusqueda = null;
+      this.totalBancoHora = 0;
+      this.totalRetraso = 0;
     },
     cancelarArchivo() {
       this.datosMarcaciones.length = 0;
@@ -306,7 +309,7 @@ export default {
       this.datosMarcaciones.length = 0;
     },
     nuevaAsistencia() {
-      this.$router.push("/nuevaAsistencia");
+      this.$router.push({ name: "incluirAsistencia" });
     },
     llamarFuncionarios() {
       axios.get(url + "/empleados?_expand=sucursal").then(response => {
@@ -324,7 +327,7 @@ export default {
         }
       )
         .then(() => {
-          this.eliminarAsistencia(id, estado);
+          this.eliminarAsistencia(id);
           this.$message({
             type: "success",
             message: "Delete completed"
@@ -872,17 +875,29 @@ export default {
         console.log(query);
         this.totalBancoHora = 0;
         this.totalRetraso = 0;
+        this.totalHoraExtra = 0;
         axios
           .get(query + "&_expand=empleado")
           .then(response => {
             this.marcaciones = response.data;
             Array.from(this.marcaciones).forEach(item => {
-              this.totalBancoHora =
-                this.totalBancoHora +
-                moment.duration(item.bancoHora, "HH:mm").asMinutes();
-              this.totalRetraso =
-                this.totalRetraso +
-                moment.duration(item.retraso, "HH:mm").asMinutes();
+              console.log("Horas Negativas", JSON.stringify(item.horasExtras));
+              if (moment.duration(item.horasExtras) < 0) {
+                this.totalRetraso =
+                  this.totalRetraso +
+                  moment.duration(item.horasExtras, "HH:mm").asMinutes();
+              } else {
+                this.totalBancoHora =
+                  this.totalBancoHora +
+                  moment.duration(item.horasExtras, "HH:mm").asMinutes();
+              }
+
+              // this.totalRetraso =
+              //   this.totalRetraso +
+              //   moment.duration(item.retraso, "HH:mm").asMinutes();
+              // this.totalHoraExtra =
+              //   this.totalHoraExtra +
+              //   moment.duration(item.horasExtras, "HH:mm").asMinutes();
               var informe = {
                 funcionario: null,
                 fecha: null,
@@ -892,6 +907,34 @@ export default {
                 bancoHora: null,
                 retraso: null
               };
+
+              var listado = {};
+              listado.fecha = item.fecha;
+              listado.empleadoId = item.empleadoId;
+              listado.salida = item.salida;
+              listado.horasTrabajadas = item.horasTrabajadas;
+              listado.horasExtras = item.horasExtras;
+              listado.retraso = item.retraso;
+              listado.bancoHora = item.bancoHora;
+              listado.isConfirmed = item.isConfirmed;
+              listado.estilo = item.estilo;
+              listado.empleadoNombre = item.empleadoNombre;
+
+              if (item.horasExtras > 0) {
+                listado.bancoHoras = item.horasExtras;
+                this.totalBancoHora =
+                  this.totalBancoHora +
+                  moment.duration(item.horasExtras, "HH:mm").asMinutes();
+              } else {
+                if (item.horasExtras < 0) {
+                  listado.descuentos = item.horasExtras;
+                  this.totalRetraso =
+                    this.totalRetraso +
+                    moment.duration(item.horasExtras, "HH:mm").asMinutes();
+                }
+              }
+              this.listado.push(listado);
+
               console.log("item array" + JSON.stringify(item));
               informe.funcionario = item.empleado.nombre;
               informe.fecha = item.fecha;

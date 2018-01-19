@@ -98,7 +98,13 @@ export default {
             ),
             retraso: this.calcularRetraso(
               this.marcacion.empleadoId,
-              this.marcacion.entrada
+              this.marcacion.entrada,
+              this.marcacion.salida
+            ),
+            bancoHora: this.calculoBancoHora(
+              this.marcacion.empleadoId,
+              this.marcacion.entrada,
+              this.marcacion.salida
             ),
             isConfirmed: true,
             estilo: this.aplicarEstilo(
@@ -136,7 +142,13 @@ export default {
             ),
             retraso: this.calcularRetraso(
               this.marcacion.empleadoId,
-              this.marcacion.entrada
+              this.marcacion.entrada,
+              this.marcacion.salida
+            ),
+            bancoHora: this.calculoBancoHora(
+              this.marcacion.empleadoId,
+              this.marcacion.entrada,
+              this.marcacion.salida
             ),
             isConfirmed: true,
             estilo: this.aplicarEstilo(
@@ -174,29 +186,49 @@ export default {
     },
     calcularRetraso(empleadoId, entrada) {
       var horaEntrada;
+      var horaSalida;
       this.empleados.filter(element => {
         if (element.id === empleadoId) {
           horaEntrada = moment
             .duration(element.sucursal.horarioEntrada, "HH:mm")
             .asMinutes();
           console.log("HORARIO ENTRADA FUNCIONARIO", horaEntrada);
+          horaSalida = moment
+            .duration(element.sucursal.horarioSalida)
+            .asMinutes();
+          console.log("HORARIO SALIDA FUNCIONARIO", horaSalida);
         }
       });
       var entrada = moment
-        .utc(entrada)
+        .utc(entradautc)
         .local()
         .format("HH:mm");
       console.log("Entrada", entrada);
-      var retraso = horaEntrada - moment.duration(entrada, "HH:mm").asMinutes();
+      var bancoHoraEntrada =
+        horaEntrada - moment.duration(entrada, "HH:mm").asMinutes();
 
-      console.log("Resultado retraso ", retraso);
+      var salida = moment
+        .utc(salidautc)
+        .local()
+        .format("HH:mm");
 
-      if (retraso < 0) {
-        retraso = retraso * 2;
-        return this.handleNegative(retraso);
+      var bancoHoraSalida =
+        moment.duration(salida, "HH:mm").asMinutes() - horaSalida;
+
+      var total = 0;
+
+      if (bancoHoraEntrada > 0) {
+        total = total + bancoHoraEntrada;
+      }
+
+      if (bancoHoraSalida > 0) {
+        total = total + bancoHoraSalida;
+      }
+
+      if (total === 0) {
+        return null;
       } else {
-        retraso = null;
-        return retraso;
+        return this.handleNegative(total);
       }
     },
     handleNegative(mins) {

@@ -73,6 +73,7 @@
                             </router-link>
                             
                             <i class="trash icon" @click="confirm(evento['.key'])"></i>
+                            
                         </td>
                     </tr>
                   
@@ -105,6 +106,7 @@
                             </router-link>
                             
                             <i class="trash icon" @click="confirm(evento['.key'], evento.funcionarioId)"></i>
+                            <i class="archive icon" @click="archivarVacaciones(evento['.key'], evento.funcionarioId)" ></i>
                         </td>
               </tr>
             </tbody>
@@ -135,7 +137,19 @@ export default {
     incluirEvento() {
       this.$router.push({ name: "incluirEvento" });
     },
+    archivarVacaciones(eventokey, funcionarioId) {
+      console.log(eventokey, Object.keys(funcionarioId)[0]);
+      var updates = {};
 
+      updates[
+        "/funcionarios" +
+          Object.keys(funcionarioId)[0] +
+          "/vacaciones" +
+          eventokey
+      ] = false;
+
+      db.ref().update(updates);
+    },
     confirm(id) {
       this.$confirm(
         "El registro sera eliminado permanentemente. Desea Continuar?",
@@ -170,15 +184,18 @@ export default {
           .ref("/calendario/" + id)
           .remove()
           .then(this.feriados.splice(index, 1));
-      } else {
+      } else if (this.listado === "vacaciones") {
         //delete from calendario and funcionarios, passing null to update will delete te item
         var updates = {};
         updates["/calendario/" + id] = null;
         updates[
           "/funcionarios/" + Object.keys(funcionarioId)[0] + "/vacaciones" + id
         ] = null;
-
-        db.ref().update(updates);
+        console.log(updates);
+        db
+          .ref()
+          .update(updates)
+          .then(res => console.log("RESPONSE", res));
       }
     }
     /*separarListados() {
