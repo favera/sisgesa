@@ -142,19 +142,13 @@ export default {
       var updates = {};
 
       updates[
-        "/funcionarios" +
+        "/funcionarios/" +
           Object.keys(funcionarioId)[0] +
-          "/vacaciones" +
+          "/vacaciones/" +
           eventokey
       ] = false;
-
-<<<<<<< HEAD
-      db.ref().update(updates);
     },
-    confirm(id) {
-=======
     confirm(id, funcionarioId) {
->>>>>>> 5b42aa32792ea91d708bbfe25f1ba2d35f7db043
       this.$confirm(
         "El registro sera eliminado permanentemente. Desea Continuar?",
         "Atencion!",
@@ -186,15 +180,6 @@ export default {
       console.log(this.listado === "feriado");
 
       if (this.listado === "feriado") {
-<<<<<<< HEAD
-        var index = this.feriados.findIndex(i => i.id === id);
-        console.log("index", index);
-        db
-          .ref("/calendario/" + id)
-          .remove()
-          .then(this.feriados.splice(index, 1));
-      } else if (this.listado === "vacaciones") {
-=======
         // var index = this.eventos.findIndex(i => i.id === id);
         //console.log("index", index);
         db.ref("/calendario/" + id).remove();
@@ -202,7 +187,6 @@ export default {
       }
       console.log(this.listado === "vacaciones");
       if (this.listado === "vacaciones") {
->>>>>>> 5b42aa32792ea91d708bbfe25f1ba2d35f7db043
         //delete from calendario and funcionarios, passing null to update will delete te item
         var updates = {};
         updates["/calendario/" + id] = null;
@@ -210,18 +194,11 @@ export default {
           "/funcionarios/" + Object.keys(funcionarioId)[0] + "/vacaciones/" + id
         ] = null;
         console.log(updates);
-<<<<<<< HEAD
-        db
-          .ref()
-          .update(updates)
-          .then(res => console.log("RESPONSE", res));
-=======
 
         db
           .ref()
           .update(updates)
           .then(res => console.log(res));
->>>>>>> 5b42aa32792ea91d708bbfe25f1ba2d35f7db043
       }
     }
     /*separarListados() {

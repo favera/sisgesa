@@ -128,7 +128,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="marcacion in marcaciones" :key="marcacion['.key']" >
+                        <tr v-for="marcacion in marcaciones" :key="marcacion['.key']" v-bind:class="{negative: marcacion.estilo.ausente, positive: marcacion.estilo.vacaciones, warning: marcacion.estilo.incompleto}" >
                             <td>{{marcacion.nombreFuncionario}}</td>
                             <td>{{marcacion.fecha}}</td>
                             <td>{{(marcacion.entrada || "--") + " hs"}}</td>
@@ -484,7 +484,10 @@ export default {
         });
         console.log(ausencia);
         if (ausencia === -1) {
-          if (Object.keys(funcionario.vacaciones)[0]) {
+          if (
+            funcionario.hasOwnProperty("vacaciones") &&
+            Object.keys(funcionario.vacaciones)[0]
+          ) {
             var fechaInicio, fechaFin, fecha;
             calendarioRef
               .child(Object.keys(funcionario.vacaciones)[0])
@@ -514,60 +517,127 @@ export default {
               this.marcacion.fecha = this.datosMarcaciones[0].fecha;
               this.marcacion.funcionarioId = funcionario[".key"];
               this.marcacion.nombreFuncionario = funcionario.nombre;
-              this.marcacion.entrada = null;
-              this.marcacion.salida = null;
-              this.marcacion.horasTrabajadas = null;
-              this.marcaciones.horasExtras = null;
-              this.marcaciones.horasFaltantes = null;
-              this.marcaciones.observacion = "Vacaciones";
+              this.marcacion.entrada = false;
+              this.marcacion.salida = false;
+              this.marcacion.horasTrabajadas = false;
+              this.marcacion.horasExtras = false;
+              this.marcacion.horasFaltantes = false;
+              this.marcacion.observacion = "Vacaciones";
+              this.marcacion.estilo.ausente = false;
+              this.marcacion.estilo.incompleto = false;
+              this.marcacion.estilo.vacaciones = true;
+
+              asistenciasRef.push(this.marcacion).then(res => console.log(res));
             }
           } else {
             this.marcacion.fecha = this.datosMarcaciones[0].fecha;
             this.marcacion.funcionarioId = funcionario[".key"];
             this.marcacion.nombreFuncionario = funcionario.nombre;
-            this.marcacion.entrada = null;
-            this.marcacion.salida = null;
-            this.marcacion.horasTrabajadas = null;
-            this.marcaciones.horasExtras = null;
-            this.marcaciones.horasFaltantes = null;
-            this.marcaciones.observacion = "Ausencia";
+            this.marcacion.entrada = false;
+            this.marcacion.salida = false;
+            this.marcacion.horasTrabajadas = false;
+            this.marcacion.horasExtras = false;
+            this.marcacion.horasFaltantes = false;
+            this.marcacion.observacion = "Ausencia";
+            this.marcacion.estilo.ausente = true;
+            this.marcacion.estilo.incompleto = false;
+            this.marcacion.estilo.vacaciones = false;
+
+            asistenciasRef.push(this.marcacion).then(res => console.log(res));
           }
-          this.ausencias.push(this.marcaciones);
         }
       });
-      this.datosMarcaciones.concat(this.ausencias);
+
       this.datosMarcaciones.forEach(marcacion => {
-        console.log("Entro al for");
+        var fecha, keyVacaciones, fechaInicio, fechaFin, isFechaVacaciones;
+        funcionariosRef.child(marcacion.empleadoId).once("value", snap => {
+          if (snap.val().hasOwnProperty("vacaciones")) {
+            snap.val().vacaciones.forEach(vacacion => {
+              if (vacacion) {
+                keyVacaciones = Object.keys(vacacion)[0];
+              }
+            });
+          } else {
+            keyVacaciones = false;
+          }
+        });
 
-        this.marcacion.fecha = marcacion.fecha;
-        this.marcacion.funcionarioId = marcacion.empleadoId;
-        this.marcacion.nombreFuncionario = this.nombreFuncionario(
-          marcacion.empleadoId
-        );
-        this.marcacion.entrada = marcacion.entrada;
-        this.marcacion.salida = marcacion.salida;
-        //calculo de Horas trabajadas
-        this.marcacion.horasTrabajadas = this.handleHorasTrabajadas(
-          marcacion.entrada,
-          marcacion.salida,
-          marcacion.fecha
-        );
+        if (keyVacaciones) {
+          calendarioRef.child(keyVacaciones).once("value", snapvac => {
+            fechaInicio = moment(
+              snapvac.val().fechaInicio,
+              "DD/MM/YYYY"
+            ).format("L");
+            fechaFin = moment(snapvac.val().fechaFin, "DD/MM/YYYY").format("L");
+          });
 
-        this.marcacion.horasExtras = this.calculoBancoH(
-          marcacion.entrada,
-          marcacion.salida,
-          marcacion.empleadoId
-        );
+          fecha = moment(fecha, "DD/MM/YYYY").format("L");
 
-        this.marcacion.horasFaltantes = this.calculoHorasFaltantes(
-          marcacion.entrada,
-          marcacion.salida,
-          marcacion.empleadoId
-        );
+          isFechaVacaciones = moment(fecha).isBetween(
+            fechaInicio,
+            fechaFin,
+            null,
+            "[]"
+          );
+        }
+
+        if (isFechaVacaciones) {
+          this.marcacion.fecha = marcacion.fecha;
+          this.marcacion.funcionarioId = marcacion.empleadoId;
+          this.marcacion.nombreFuncionario = this.nombreFuncionario(
+            marcacion.empleadoId
+          );
+          this.marcacion.entrada = false;
+          this.marcacion.salida = false;
+          this.marcacion.horasTrabajadas = false;
+          this.marcacion.horasExtras = false;
+          this.marcacion.horasFaltantes = false;
+          this.marcacion.observacion = "Vacaciones";
+          this.marcacion.estilo.ausente = false;
+          this.marcacion.estilo.incompleto = false;
+          this.marcacion.estilo.vacaciones = true;
+        } else {
+          this.marcacion.fecha = marcacion.fecha;
+          this.marcacion.funcionarioId = marcacion.empleadoId;
+          this.marcacion.nombreFuncionario = this.nombreFuncionario(
+            marcacion.empleadoId
+          );
+          this.marcacion.entrada = marcacion.entrada;
+          this.marcacion.salida = marcacion.salida;
+          //calculo de Horas trabajadas
+          this.marcacion.horasTrabajadas = this.handleHorasTrabajadas(
+            marcacion.entrada,
+            marcacion.salida,
+            marcacion.fecha
+          );
+
+          this.marcacion.horasExtras = this.calculoBancoH(
+            marcacion.entrada,
+            marcacion.salida,
+            marcacion.empleadoId
+          );
+
+          this.marcacion.horasFaltantes = this.calculoHorasFaltantes(
+            marcacion.entrada,
+            marcacion.salida,
+            marcacion.empleadoId
+          );
+
+          this.marcacion.observacion = "";
+
+          if (marcacion.entrada == null || marcacion.salida == null) {
+            this.marcacion.estilo.ausente = false;
+            this.marcacion.estilo.incompleto = true;
+            this.marcacion.estilo.vacaciones = false;
+          } else {
+            this.marcacion.estilo.ausente = false;
+            this.marcacion.estilo.incompleto = false;
+            this.marcacion.estilo.vacaciones = false;
+          }
+        }
 
         asistenciasRef.push(this.marcacion).then(res => console.log(res));
       });
-      console.log("pero no entro en el for");
     },
     nombreFuncionario(empleadoId) {
       var nombre;
