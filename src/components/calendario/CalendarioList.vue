@@ -99,7 +99,7 @@
                 <td class="capital">{{evento.tipoEvento}}</td>
                 <td>{{evento.funcionario}}</td>
                 <td>{{evento.fechaInicio}}</td>
-                <td>{{evento.fechaFin}}</td>
+                <td>{{evento.fechaFin}}-{{evento.funcionarioId}}</td>
                 <td>
                             <router-link :to="{name: 'editarEvento', params: { id: evento['.key']}}">
                                 <i class="edit row icon"></i>
@@ -148,9 +148,13 @@ export default {
           eventokey
       ] = false;
 
+<<<<<<< HEAD
       db.ref().update(updates);
     },
     confirm(id) {
+=======
+    confirm(id, funcionarioId) {
+>>>>>>> 5b42aa32792ea91d708bbfe25f1ba2d35f7db043
       this.$confirm(
         "El registro sera eliminado permanentemente. Desea Continuar?",
         "Atencion!",
@@ -161,7 +165,7 @@ export default {
         }
       )
         .then(() => {
-          this.eliminarFeriado(id);
+          this.eliminarFeriado(id, funcionarioId);
           this.$message({
             type: "success",
             message: "Registro Eliminado"
@@ -176,8 +180,13 @@ export default {
     },
     eliminarFeriado(id, funcionarioId) {
       console.log("id", id);
+      console.log("funcionario", funcionarioId);
+
+      console.log("valor listado", this.listado);
+      console.log(this.listado === "feriado");
 
       if (this.listado === "feriado") {
+<<<<<<< HEAD
         var index = this.feriados.findIndex(i => i.id === id);
         console.log("index", index);
         db
@@ -185,17 +194,34 @@ export default {
           .remove()
           .then(this.feriados.splice(index, 1));
       } else if (this.listado === "vacaciones") {
+=======
+        // var index = this.eventos.findIndex(i => i.id === id);
+        //console.log("index", index);
+        db.ref("/calendario/" + id).remove();
+        /*.then(this.feriados.splice(index, 1));*/
+      }
+      console.log(this.listado === "vacaciones");
+      if (this.listado === "vacaciones") {
+>>>>>>> 5b42aa32792ea91d708bbfe25f1ba2d35f7db043
         //delete from calendario and funcionarios, passing null to update will delete te item
         var updates = {};
         updates["/calendario/" + id] = null;
         updates[
-          "/funcionarios/" + Object.keys(funcionarioId)[0] + "/vacaciones" + id
+          "/funcionarios/" + Object.keys(funcionarioId)[0] + "/vacaciones/" + id
         ] = null;
         console.log(updates);
+<<<<<<< HEAD
         db
           .ref()
           .update(updates)
           .then(res => console.log("RESPONSE", res));
+=======
+
+        db
+          .ref()
+          .update(updates)
+          .then(res => console.log(res));
+>>>>>>> 5b42aa32792ea91d708bbfe25f1ba2d35f7db043
       }
     }
     /*separarListados() {

@@ -136,6 +136,7 @@
                              <td>{{marcacion.horasTrabajadas + " hs"}}</td>
                              <td>{{(marcacion.horasFaltantes || "--") + " hs"}}</td>
                              <td>{{(marcacion.horasExtras || "--") + " hs"}}</td>
+                             <td>{{marcacion.observacion || "--"}}</td>
                             <!--<td>{{(marcacion.bancoHora || "--") + " hs"}} </td>
                             <td>{{(marcacion.retraso || "--" )+ " hs"}}</td> -->
                             <!-- <td>{{marcacion.horasExtras + " hs"}} </td> -->
@@ -476,9 +477,68 @@ export default {
       }
     },
     postFirebase() {
-      console.log("Vino ACa");
+      this.funcionarios.forEach(funcionario => {
+        var ausencia = this.datosMarcaciones.findIndex(item => {
+          console.log("comparacion", item.empleadoId, funcionario[".key"]);
+          return funcionario[".key"] === item.empleadoId;
+        });
+        console.log(ausencia);
+        if (ausencia === -1) {
+          if (Object.keys(funcionario.vacaciones)[0]) {
+            var fechaInicio, fechaFin, fecha;
+            calendarioRef
+              .child(Object.keys(funcionario.vacaciones)[0])
+              .once("value", snap => {
+                console.log(snap.val());
+                fechaInicio = moment(
+                  snap.val().fechaInicio,
+                  "DD/MM/YYYY"
+                ).format("L");
+                fechaFin = moment(snap.val().fechaFin, "DD/MM/YYYY").format(
+                  "L"
+                );
+              });
+
+            fecha = moment(this.datosMarcaciones[0].fecha, "DD/MM/YYYY").format(
+              "L"
+            );
+
+            var isFechaVacaciones = moment(fecha).isBetween(
+              fechaInicio,
+              fechaFin,
+              null,
+              "[]"
+            );
+
+            if (isFechaVacaciones) {
+              this.marcacion.fecha = this.datosMarcaciones[0].fecha;
+              this.marcacion.funcionarioId = funcionario[".key"];
+              this.marcacion.nombreFuncionario = funcionario.nombre;
+              this.marcacion.entrada = null;
+              this.marcacion.salida = null;
+              this.marcacion.horasTrabajadas = null;
+              this.marcaciones.horasExtras = null;
+              this.marcaciones.horasFaltantes = null;
+              this.marcaciones.observacion = "Vacaciones";
+            }
+          } else {
+            this.marcacion.fecha = this.datosMarcaciones[0].fecha;
+            this.marcacion.funcionarioId = funcionario[".key"];
+            this.marcacion.nombreFuncionario = funcionario.nombre;
+            this.marcacion.entrada = null;
+            this.marcacion.salida = null;
+            this.marcacion.horasTrabajadas = null;
+            this.marcaciones.horasExtras = null;
+            this.marcaciones.horasFaltantes = null;
+            this.marcaciones.observacion = "Ausencia";
+          }
+          this.ausencias.push(this.marcaciones);
+        }
+      });
+      this.datosMarcaciones.concat(this.ausencias);
       this.datosMarcaciones.forEach(marcacion => {
         console.log("Entro al for");
+
         this.marcacion.fecha = marcacion.fecha;
         this.marcacion.funcionarioId = marcacion.empleadoId;
         this.marcacion.nombreFuncionario = this.nombreFuncionario(
@@ -601,7 +661,6 @@ export default {
           moment.duration(cargaLaboral, "HH:mm").asMinutes();
 
         console.log("Resultado Horas Extras", horasExtras);
-        console.log(moment.duration);
 
         if (horasExtras > 0) {
           console.log("Entro pero no Retorno tercer else horas Trabajadas");
@@ -1055,7 +1114,15 @@ export default {
 
     this.$bindAsArray("funcionarios", funcionariosRef);
     this.$bindAsArray("eventos", calendarioRef);
-    this.$bindAsArray("marcaciones", asistenciasRef);
+    this.$bindAsArray("marcaciones", asistenciasRef.limitToLast(51));
+    /*this.$bindAsArray(
+      "marcaciones",
+      asistenciasRef
+        .orderByChild("fecha")
+        .startAt("01/12/2017")
+        .endAt("02/12/2017/")
+        .limitToLast(10)
+    );*/
 
     /*var funcionariosSucursalesRef = funcionariosRef
       .child("-L20uHGA7sTsMIatZmAD")
