@@ -5,27 +5,27 @@
   <div class="item">
           
     <div class="content">
-      <table class="ui striped table">
+      <table class="ui celled striped table">
   <thead>
     <tr>
       <th>Funcionario</th>
-      <th>Horas Total del Mes</th>
-      <th>Horas Total Trabajadas</th>
+      <th>Dias del Mes</th>
+      <th>Dias Trabajados</th>
       <th>Total Horas Faltantes</th>
       <th>Total Horas Extras</th>
-      <th>Total Dias Ausentes</th>
-      <th>Total Dias Vacaciones</th>
+      <th>Ausencias</th>
+      <th>Vacaciones</th>
     </tr>
   </thead>
   <tbody>
-    <tr class="center aligned" v-for="item in informe" :key="item['.key']">
+    <tr  v-for="item in informe" :key="item['.key']">
       <td>{{item.nombre}}</td>
-      <td>{{item.totalMes}}</td>
-      <td>{{item.totalTrabajado}}</td>
-      <td><div class="ui orange label">{{item.totalFaltante}}</div></td>
-      <td> {{item.totalExtras}}</td>
-      <td>{{item.totalAusencias}}</td>
-      <td>{{item.totalVacaciones}}</td>
+      <td class="center aligned">{{item.totalMes}} dias</td>
+      <td class="center aligned">{{item.totalDiasTrabajados || 0}} dias </td>
+      <td class="center aligned">{{item.totalFaltante}}</td>
+      <td class="center aligned">{{item.totalExtras}}</td>
+      <td class="center aligned">{{item.totalAusencias}}</td>
+      <td class="center aligned">{{item.totalVacaciones}}</td>
      
     </tr>
     
@@ -71,7 +71,7 @@ export default {
   },
   methods: {
     generarResumen() {
-      var fecha = moment("05/11/2017");
+      var fecha = moment("05/11/2017", "DD/MM/YYYY").format("L");
       this.item.totalMes = this.getDiasMes(fecha) - this.getFeriados(fecha);
 
       for (let funcionario of this.funcionarios) {
@@ -81,6 +81,7 @@ export default {
         item.nombre = null;
         item.totalMes = null;
         item.totalTrabajado = null;
+        item.totalDiasTrabajados = null;
         item.totalFaltante = null;
         item.totalExtras = null;
         item.totalAusencias = null;
@@ -88,7 +89,10 @@ export default {
 
         this.marcaciones.map(marcacion => {
           console.log(
-            "Comparacion " + funcionario[".key"] + "=" + marcacion.funcionarioId
+            "Comparacioon " +
+              funcionario[".key"] +
+              "=" +
+              marcacion.funcionarioId
           );
           if (funcionario[".key"] === marcacion.funcionarioId) {
             if (marcacion.estilo.ausente) {
@@ -110,15 +114,40 @@ export default {
                 .duration(marcacion.horasFaltantes, "HH:mm")
                 .asMinutes();
             }
-            if (marcacion.horasTrabajadas) {
+            console.log("Horas Trabajadas", marcacion.horasTrabajadas);
+            if (
+              marcacion.horasTrabajadas &&
+              marcacion.horasTrabajadas.localeCompare("00:00")
+            ) {
               item.totalTrabajado += moment
                 .duration(marcacion.horasTrabajadas, "HH:mm")
                 .asMinutes();
+              item.totalDiasTrabajados += 1;
             }
           }
         });
 
         item.nombre = funcionario.nombre;
+        item.totalMes =
+          this.getDiasMes(fecha) -
+          this.getFeriados(fecha) -
+          item.totalVacaciones;
+
+        if (item.totalFaltante) {
+          item.totalFaltante = item.totalFaltante + " minutos";
+        }
+
+        if (item.totalVacaciones) {
+          item.totalVacaciones = item.totalVacaciones + " dias";
+        }
+
+        if (item.totalAusencias) {
+          item.totalAusencias = item.totalAusencias + " dias";
+        }
+
+        if (item.totalExtras) {
+          item.totalExtras = item.totalExtras + " minutos";
+        }
 
         this.informe.push(item);
 

@@ -17,7 +17,8 @@
       <router-link class="item" active-class="active" :to="{name: 'listadoEmpleado'}">Funcionarios</router-link>
       <router-link class="item" active-class="active" :to="{name: 'listadoSucursal'}">Sucursales</router-link>
       <router-link class="item" active-class="active" :to="{name: 'listadoCalendario'}">Calendario</router-link>
-      <router-link class="item" active-class="active" :to="{name: 'listadoFeriado'}">Feriados</router-link>
+      <!-- <router-link class="item" active-class="active" :to="{name: 'listadoFeriado'}">Feriados</router-link> -->
+      <router-link class="item" active-class="active" :to="{name: 'listadoAdelanto'}">Adelantos</router-link>
 
     </div>
 
