@@ -177,9 +177,6 @@ export default {
         .ref("/funcionarios/" + id)
         .remove()
         .then(this.empleados.splice(index, 1));
-      /*axios
-        .delete(url + "/empleados/" + id)
-        .then(console.log(this.empleados.splice(index, 1)));*/
     },
     obtenerListadoEmpleado() {
       var page = JSON.parse(localStorage.getItem("page") || null);
@@ -191,19 +188,6 @@ export default {
         this.pageOne.totalItems = page.totalItems;
 
         this.pageOneChanged(page.currentPage);
-
-        // axios
-        //   .get(
-        //     url +
-        //       "/empleados?_expand=sucursal&_page=" +
-        //       this.pageOne.currentPage
-        //   )
-        //   .then(response => {
-        //     this.empleados = response.data.slice(0, this.pageOne.itemsPerPage);
-        //   })
-        //   .catch(e => {
-        //     console.log(e);
-        //   });
       } else {
         axios
           .get(url + "/empleados?_expand=sucursal")
@@ -229,22 +213,9 @@ export default {
           .limitToFirst(this.pageOne.itemsPerPage)
           .startAt(this.keyPagination[pageNum - 1])
       );
-      /*funcionariosRef
-        .orderByKey()
-        .limitToFirst(this.pageOne.itemsPerPage)
-        .startAt(this.keyPagination[pageNum - 1])
-        .on("value", snap => {
-          console.log(snap.val());
-          this.empleados.push(snap.val());
-        });*/
     }
   },
   created() {
-    // this.$bindAsArray(
-    //   "empleados",
-    //   funcionariosRef.orderByKey().limitToFirst(10)
-    // );
-
     axios.get(funcionariosRef + ".json?shallow=true").then(res => {
       this.pageOne.totalItems = Object.keys(res.data).length;
 

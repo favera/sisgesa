@@ -133,16 +133,14 @@
                             <td>{{marcacion.fecha}}</td>
                             <td>{{(marcacion.entrada || "--") + " hs"}}</td>
                             <td>{{(marcacion.salida || "--") + " hs"}}</td>
-                             <td>{{marcacion.horasTrabajadas + " hs"}}</td>
+                             <td>{{(marcacion.horasTrabajadas || "--") + " hs"}}</td>
                              <td>{{(marcacion.horasFaltantes || "--") + " hs"}}</td>
                              <td>{{(marcacion.horasExtras || "--") + " hs"}}</td>
                              <td>{{marcacion.observacion || "--"}}</td>
-                            <!--<td>{{(marcacion.bancoHora || "--") + " hs"}} </td>
-                            <td>{{(marcacion.retraso || "--" )+ " hs"}}</td> -->
-                            <!-- <td>{{marcacion.horasExtras + " hs"}} </td> -->
+                     
                             <td>
-                                <i @click="guardarPaginacion(marcacion.id)" class="edit row icon"></i>
-                                <i @click="confirm(marcacion.id)" class="trash icon"></i>
+                                <i @click="guardarPaginacion(marcacion['.key'])" class="edit row icon"></i>
+                                <i @click="confirm(marcacion['.key'])" class="trash icon"></i>
                                 
                             </td>
                         </tr>
@@ -161,7 +159,7 @@
                            
                         </tr>
                         <tr>
-                           <th colspan="8">
+                           <th colspan="9">
                                 <app-pagination :current-page="pageOne.currentPage" :total-items="pageOne.totalItems" :items-per-page="pageOne.itemsPerPage" @page-changed="pageOneChanged">
                                 </app-pagination>
                             </th>
@@ -191,6 +189,7 @@ export default {
   data() {
     return {
       datosMarcaciones: [],
+      keyPagination: [],
       listado: [],
       marcaciones: [],
       eventos: [],
@@ -552,11 +551,12 @@ export default {
         var fecha, keyVacaciones, fechaInicio, fechaFin, isFechaVacaciones;
         funcionariosRef.child(marcacion.empleadoId).once("value", snap => {
           if (snap.val().hasOwnProperty("vacaciones")) {
-            snap.val().vacaciones.forEach(vacacion => {
-              if (vacacion) {
-                keyVacaciones = Object.keys(vacacion)[0];
+            for (var prop in snap.val().vacaciones) {
+              console.log("Valor Propiedad", prop);
+              if (prop) {
+                keyVacaciones = Object.keys(prop)[0];
               }
-            });
+            }
           } else {
             keyVacaciones = false;
           }
@@ -1087,18 +1087,13 @@ export default {
     },
     pageOneChanged(pageNum) {
       this.pageOne.currentPage = pageNum;
-      axios
-        .get(
-          url +
-            "/marcaciones?_expand=empleado&_page=" +
-            this.pageOne.currentPage
-        )
-        .then(response => {
-          this.marcaciones = response.data.slice(0, this.pageOne.itemsPerPage);
-        })
-        .catch(e => {
-          console.log(e);
-        });
+      this.$bindAsArray(
+        "marcaciones",
+        asistenciasRef
+          .orderByKey()
+          .limitToFirst(this.pageOne.itemsPerPage)
+          .startAt(this.keyPagination[pageNum - 1])
+      );
     },
     calcularBancoHora() {
       var bancoHoraNuevo = [];
@@ -1185,6 +1180,30 @@ export default {
     this.$bindAsArray("funcionarios", funcionariosRef);
     this.$bindAsArray("eventos", calendarioRef);
     this.$bindAsArray("marcaciones", asistenciasRef.limitToLast(51));
+
+    axios.get(asistenciasRef + ".json?shallow=true").then(res => {
+      this.pageOne.totalItems = Object.keys(res.data).length;
+
+      var keys = Object.keys(res.data).sort(); // Notice the .sort()!
+      var pageLength = 10;
+      var pageCount = keys.length / pageLength;
+      var key;
+
+      for (var i = 0; i < pageCount; i++) {
+        key = keys[i * pageLength];
+        this.keyPagination.push(key);
+      }
+
+      var page = JSON.parse(localStorage.getItem("page") || null);
+      console.log("Pagina" + JSON.stringify(page));
+      if (page !== null) {
+        this.pageOne.currentPage = page.currentPage;
+        this.pageOneChanged(page.currentPage);
+      } else {
+        this.pageOneChanged(this.pageOne.currentPage);
+      }
+    });
+
     /*this.$bindAsArray(
       "marcaciones",
       asistenciasRef
