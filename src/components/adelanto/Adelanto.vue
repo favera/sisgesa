@@ -10,7 +10,7 @@
 
     <div class="ten wide field">
         <label for="">Seleccionar Funcionario</label>
-        <select name="funcionarios" v-model="adelanto.funcionarioId" >
+        <select name="funcionarios" v-model="funcionarioSeleccionado" >
             <option disabled value="">Seleccionar Funcionario..</option>
             <option v-for="funcionario in funcionarios" :key="funcionario['.key']" v-bind:value="funcionario['.key']">{{funcionario.nombre}}</option>
         </select>
@@ -38,7 +38,7 @@
 
             <div class="eight wide field">
                 <div class="ui input" v-bind:class="{'disabled': disabledInput}">
-                <input type="text">
+                <input type="text"  v-model="adelanto.monto">
             </div>
             </div>
 
@@ -70,9 +70,11 @@ export default {
         funcionarioId: null,
         nombreFuncionario: null,
         tipoAdelanto: "quincena",
+
         monto: null
       },
       disabledInput: true,
+      funcionarioSeleccionado: null,
       setDate: new Date(),
       funcionarios: []
     };
@@ -167,7 +169,23 @@ export default {
     this.$bindAsArray("funcionarios", funcionariosRef);
   },
   watch: {
-    $route: "obtenerFeriado"
+    $route: "obtenerFeriado",
+    funcionarioSeleccionado: function() {
+      if (this.adelanto.tipoAdelanto === "quincena") {
+        funcionariosRef
+          .child(this.funcionarioSeleccionado)
+          .once("value", snap => {
+            console.log(snap.val().salario);
+            var quincena =
+              snap
+                .val()
+                .salario.split(".")
+                .join("") / 2;
+            this.adelanto.monto =
+              quincena.toLocaleString() + " " + snap.val().moneda;
+          });
+      }
+    }
   }
 };
 </script>
