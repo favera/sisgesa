@@ -34,6 +34,11 @@
             <table class="ui teal celled table">
                 <thead>
                     <tr>
+                     <th class="collapsing">
+        <div class="ui fitted checkbox">
+          <input type="checkbox" @click="selectAll"> <label></label>
+        </div>
+      </th>
                         <th>Fecha</th>
                         <th>Funcionario</th>
                         <th>Tipo de Adelanto</th>
@@ -43,6 +48,11 @@
                 </thead>
                 <tbody>
                     <tr v-for="adelanto in adelantos" :key="adelanto['.key']">
+                      <td class="collapsing">
+        <div class="ui fitted checkbox">
+          <input type="checkbox" id="adelantoCheck"> <label></label>
+        </div>
+      </td>
                         <td>{{adelanto.fecha}}</td>
                         <td>{{adelanto.nombreFuncionario}}</td>
                         <td>{{adelanto.tipoAdelanto}}</td>
@@ -126,6 +136,11 @@ export default {
     eliminarFeriado(id) {
       var index = this.sucursales.findIndex(i => i.id === id);
       db.ref("/adelantos/" + id).remove();
+    },
+    selectAll() {
+      $(this.$el)
+        .find("#adelantoCheck")
+        .checkbox("set checked");
     }
   },
   created() {

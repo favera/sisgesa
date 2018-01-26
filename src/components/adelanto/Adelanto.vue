@@ -59,7 +59,7 @@
 
     
 
-    <div class="ui teal button" @click="guardarFeriado()">Guardar</div>
+    <div class="ui teal button" @click="guardarAdelanto()">Guardar</div>
     <div class="ui button" @click="cancelar()">Cancelar</div>
 </div>
 
@@ -111,47 +111,35 @@ export default {
         });
       }
     },
-    guardarFeriado() {
-      // if (typeof this.$route.params.id !== null) {
-      //   var horaResult;
-      //   var horaResultUtc;
-      //   if (this.feriado.tipoFeriado === "parcial") {
-      //     horaResult = moment
-      //       .utc(this.feriado.horasUtc)
-      //       .local()
-      //       .format("HH:mm");
-      //     horaResultUtc = this.feriado.horasUtc.toString();
-      //   } else {
-      //     horaResult = null;
-      //     horaResultUtc = null;
-      //   }
+    guardarAdelanto() {
+      if (typeof this.$route.params.id !== null) {
+        this.adelanto.fecha = moment(this.adelanto.fechaUtc, "DD/MM/YYYY")
+          .format("L")
+          .toString();
+        this.adelanto.fechaUtc = this.adelanto.fechaUtc.toString();
+        this.adelanto.funcionarioId = this.funcionarioSeleccionado;
 
-      //   this.feriado.fecha = moment(this.feriado.fechaUtc, "DD/MM/YYYY")
-      //     .format("L")
-      //     .toString();
-      //   this.feriado.fechaUtc = this.feriado.fechaUtc.toString();
+        adelantosRef
+          .child(this.$route.params.id)
+          .update(this.adelanto)
+          .then(response => {
+            this.editSuccess();
+            this.cancelar();
+            console.log(response);
+          });
+      } else {
+        this.adelanto.fecha = moment(this.adelanto.fechaUtc, "DD/MM/YYYY")
+          .format("L")
+          .toString();
+        this.adelanto.fechaUtc = this.adelanto.fechaUtc.toString();
+        this.adelanto.funcionarioId = this.funcionarioSeleccionado;
 
-      //   feriadoRef
-      //     .child(this.$route.params.id)
-      //     .update(this.feriado)
-      //     .then(response => {
-      //       this.success();
-      //       this.cancelar();
-      //       console.log(response);
-      //     });
-      // } else {
-      this.adelanto.fecha = moment(this.adelanto.fechaUtc, "DD/MM/YYYY")
-        .format("L")
-        .toString();
-      this.adelanto.fechaUtc = this.adelanto.fechaUtc.toString();
-      this.adelanto.funcionarioId = this.funcionarioSeleccionado;
-
-      adelantosRef.push(this.adelanto).then(res => {
-        console.log(res);
-        this.success();
-        this.cancelar();
-      });
-      // }
+        adelantosRef.push(this.adelanto).then(res => {
+          console.log(res);
+          this.success();
+          this.cancelar();
+        });
+      }
     },
     cancelar() {
       this.$router.push({ name: "listadoAdelanto" });
@@ -160,6 +148,13 @@ export default {
       this.$notify({
         title: "Exito!",
         message: "El registro se ha creado correctamente",
+        type: "success"
+      });
+    },
+    editSuccess() {
+      this.$notify({
+        title: "Exito!",
+        message: "El registro se ha actualizado correctamente",
         type: "success"
       });
     },
@@ -174,9 +169,10 @@ export default {
     $(this.$el)
       .find(".ui.dropdown")
       .dropdown();
+    this.obtenerAdelanto();
   },
   updated() {
-    this.obtenerAdelanto();
+    //this.obtenerAdelanto();
   },
   created() {
     // this.obtenerAdelanto();
