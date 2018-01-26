@@ -42,19 +42,18 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td> 
-                            
-                        </td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                    <tr v-for="adelanto in adelantos" :key="adelanto['.key']">
+                        <td>{{adelanto.fecha}}</td>
+                        <td>{{adelanto.nombreFuncionario}}</td>
+                        <td>{{adelanto.tipoAdelanto}}</td>
+                        <td>{{adelanto.monto}} {{adelanto.moneda}}</td>
                         <td>
-                            <!-- <router-link :to="{name: 'editarAdelanto', params: { id: adelanto['.key']}}">
+                            <router-link :to="{name: 'editarAdelanto', params: { id: adelanto['.key']}}">
                                 <i class="edit row icon"></i>
                             </router-link>
                             
-                            <i class="trash icon" @click="confirm(adelanto['.key'])"></i> -->
+                            <i class="trash icon" @click="confirm(adelanto['.key'])"></i>
+                            <i class="print icon"></i>
                         </td>
                     </tr>
                   
@@ -70,11 +69,13 @@
 import axios from "axios";
 import { db } from "./../.././config/firebase";
 
-let adelantoRef = db.ref("/adelantos");
+let adelantosRef = db.ref("/adelantos");
 
 export default {
   data() {
-    return {};
+    return {
+      adelantos: []
+    };
   },
   methods: {
     incluirAdelanto() {
@@ -127,7 +128,9 @@ export default {
       db.ref("/adelantos/" + id).remove();
     }
   },
-  created() {}
+  created() {
+    this.$bindAsArray("adelantos", adelantosRef);
+  }
 };
 </script>
 
